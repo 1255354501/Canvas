@@ -22,7 +22,7 @@ function FigureControl()
 	this.m_MovePoint_cursor=new CPoint(0,0);   //当前鼠标移动的位置
 	this.m_cpCurrentPoint_cursor=new CPoint(0,0); //当前鼠标位置
 	this.m_cpOriginalPoint_cursor=new CPoint(0,0);  //上次鼠标位置
-	
+	this.OriginalPoint_Bitmap=new CPoint(0,0);  //当前图像原点坐标 
 	this.m_ImageHeight=0;
 	this.m_ImageWeith=0;  //用来显示图像长、宽 
 	this.m_OldImageWeith=0;
@@ -94,14 +94,13 @@ function FigureControl()
 	this.  m_nCursorInFigureId=0;   //鼠标左键所在的区域id　
 	this.  SelectFigureId=0;  //设置选中图形id
 	this. x_Distance=0;
-	this.y_Distance=0;  //与主界面的坐标偏移
-	this.OriginalPoint_Bitmap=new CPoint(0,0);  //当前图像原点坐标 
+	this.y_Distance=0;  //与主界面的坐标偏移	
 	this.CurrentFigure=new Figure();  //当前图形 
 	this.m_CurrentFillStyle=0;  //当前填充风格
 	this. m_nNextFigureIndex=0;		
 	this.m_strDataReserved;
 	
-	this.m_bMouseClickFlag=true;
+	this.m_bMouseClickFlag=false;
 	
 	
 	//函数
@@ -126,7 +125,6 @@ function FigureControl()
 	this. PointInRectEdge=PointInRectEdge;// 点是否在方框边缘区域内
 	this. LoadFromFile=LoadFromFile; //从文件导入
 	this. LoadFromBuffer=LoadFromBuffer; // 从Buffer导入	
-	this. AddFigure=AddFigure;
 	this. SearchPoint=SearchPoint;				//在图形集里面寻找当前鼠标点的近邻 
 	this. SetFillStyle=SetFillStyle;//设置填充风格
 	this. GetFillStyle=GetFillStyle;		//获取填充风格；

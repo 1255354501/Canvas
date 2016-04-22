@@ -94,6 +94,10 @@ function RepaintControl() //控件重绘  CPaintDC*
 	
 	this.m_Context.clearRect(0,0,this.m_Canvas.width,this.m_Canvas.height);
 
+	this.m_RectFigure.left=0;
+	this.m_RectFigure.right=this.m_Image.width;
+	this.m_RectFigure.top=0;
+	this.m_RectFigure.bottom=this.m_Image.height; 
 
 
 //图像大小框
@@ -105,7 +109,7 @@ function RepaintControl() //控件重绘  CPaintDC*
 		var FindIterator=new Figure ; 
 		for(var index=0;index<this.m_FiguresSet.m_nFigureCount;index++)
 		{  
-			this.DrawFigure(this.m_FiguresSet.m_Figures[nindex]); 
+			this.DrawFigure(this.m_FiguresSet.m_Figures[index]); 
 		} 
 	}  
 //画实时正在画的线条 
@@ -126,8 +130,8 @@ function RepaintControl() //控件重绘  CPaintDC*
 function ConnectLine(data) //有线组成的图形形连线
 {
 	var MovePoint=new CPoint(0,0);
-	varIn_OriginalPoint_cursor=new CPoint(0,0); 
-	PointEqual(MovePoint,OriginalPoint_Bitmap);  
+	var In_OriginalPoint_cursor=new CPoint(0,0); 
+	PointEqual(MovePoint,this.OriginalPoint_Bitmap);  
 	var nCurrentPointIndex=0,nPointIndex=0;
 //移动到起始点
 	var FindIterator=new CPoint(0,0);
@@ -137,14 +141,14 @@ function ConnectLine(data) //有线组成的图形形连线
 	}	
 	FindIterator=data.figure_data.m_CPoint[0];
 	nCurrentPointIndex++;
-	m_Context.MoveTo(GetIntValue(FindIterator.x*m_fZoomNum)+MovePoint.x+data.shift_x,GetIntValue(FindIterator.y*m_fZoomNum)+MovePoint.y+data.shift_y);  
+	m_Context.MoveTo(GetIntValue(FindIterator.x*this.m_fZoomNum)+MovePoint.x+data.shift_x,GetIntValue(FindIterator.y*this.m_fZoomNum)+MovePoint.y+data.shift_y);  
 	//显示第一个小方框
 	if ((data.figure_id==m_nCursorInFigureId || data.figure_id== SelectFigureId)&& b_ShowPointRect)
 	{
 		var point=new CPoint(0,0);
 		point.x=GetIntValue(FindIterator.x*m_fZoomNum)+MovePoint.x+data.shift_x;
 		point.y=GetIntValue(FindIterator.y*m_fZoomNum)+MovePoint.y+data.shift_y;
-		DrawPointRect(cdc,point,0);				
+		DrawPointRect(point,0);				
 	} 
 	if (data.figure_type==RectType)
 	{
@@ -153,14 +157,15 @@ function ConnectLine(data) //有线组成的图形形连线
 	}
 //显示图形名
 	var rect=new CRect(0,0,0,0);
-	m_Context.fillStyle =data.figure_color;
+	this.m_Context.fillStyle =data.figure_color;
+	
 	rect.left=5+GetIntValue(FindIterator.x*m_fZoomNum)+MovePoint.x+data.shift_x;
 	rect.right=rect.left+FigureControl_TextLength;
 	rect.top=GetIntValue(FindIterator.y*m_fZoomNum)+MovePoint.y+data.shift_y;
 	rect.bottom=rect.top+FigureControl_TextLength;
 	
 	
-	m_Context.fillText(data.figure_name,rect.left,rect.top); 
+	this.m_Context.fillText(data.figure_name,rect.left,rect.top); 
 	
 //对所有点连线	 	
 	nPointIndex++;
@@ -215,7 +220,7 @@ function ConnectLine(data) //有线组成的图形形连线
 		} 		
 	}
 	FindIterator=data.figure_data.begin();
-	m_Context.LineTo(GetIntValue(FindIterator.x*m_fZoomNum)+MovePoint.x+data.shift_x,
+	this.m_Context.lineTo(GetIntValue(FindIterator.x*m_fZoomNum)+MovePoint.x+data.shift_x,
 	GetIntValue(FindIterator.y*m_fZoomNum)+MovePoint.y+data.shift_y);
 	
 	if ((data.figure_id==m_nCursorInFigureId  || data.figure_id== SelectFigureId)
@@ -227,12 +232,131 @@ function ConnectLine(data) //有线组成的图形形连线
 }
 
 
-function DrawFigure(Figure)//绘制图形
-{}
-function FillFigureRect(Figure) //填充图形 
-{}
+function DrawFigure(data)//绘制图形
+{
+	//填充图形
+	FillFigureRect(data);
+	//图形周边线条
+	if (Figure.figure_type==CircleType)
+	{
+		DrawEllipseRect(data);
+	}
+	else if (Figure.figure_type==DrectType)
+	{
+		DrawDoubleRect(data);
+	}
+	else
+	{
+		ConnectLine(data); 
+	}
+}
+
+
+function FillFigureRect(data) //填充图形 
+{
+	if (data.figure_fill.b_fill==true)
+	{ 
+	//填充多边形
+		if (data.figure_type==PolyType ||data.figure_type==RectType)
+		{
+			var PointCount=data.figure_data.m_nFigureRectCount();
+			var points=new Array(PointCount);
+			for(var n=0;n<PointCount;n++)
+				points[n]=new CPoint(0,0);
+			
+			var FindIterator=new CPoint(0,0);
+			var FindPointIndex=0;
+			var i=0;
+			for (;FindPointIndex < PointCount;FindPointIndex++)
+			{
+				FindIterator=data.figure_data.m_CPoint[FindPointIndex]
+				
+				points[i].x=GetIntValue(FindIterator.x*this.m_fZoomNum+this.OriginalPoint_Bitmap.x)+data.shift_x;
+				points[i].y=GetIntValue(FindIterator.y*this.m_fZoomNum+this.OriginalPoint_Bitmap.y)+data.shift_y; 
+				i++;
+			}
+		
+		
+			this.m_Context.fillStyle=data.figure_fill.figure_color;
+			
+			//int oldrop2=cdc.SetROP2(data.figure_fill.FillStyle);
+			//cdc.Polygon(points,PointCount); 
+			//cdc.SetROP2(oldrop2);  
+		 
+		} 
+		//填充圆形
+		else if (data.figure_type==CircleType)
+		{  			
+			var TempFillRect=new CRect(0,0,0,0);
+			TempFillRect.left=GetIntValue(data.figure_rect.left*this.m_fZoomNum+this.OriginalPoint_Bitmap.x)+data.shift_x;
+			TempFillRect.right=GetIntValue(data.figure_rect.right*this.m_fZoomNum+this.OriginalPoint_Bitmap.x)+data.shift_x;
+			TempFillRect.top=GetIntValue(data.figure_rect.top*this.m_fZoomNum+this.OriginalPoint_Bitmap.y)+data.shift_y;
+			TempFillRect.bottom=GetIntValue(data.figure_rect.bottom*this.m_fZoomNum+this.OriginalPoint_Bitmap.y)+data.shift_y;
+			
+			var xPostion=TempFillRect.left+(TempFillRect.right-TempFillRect.left)/2.0;
+			var YPostion=TempFillRect.top+(TempFillRect.bottom-TempFillRect.top)/2.0;
+			
+			this.m_Context.fillStyle=data.figure_fill.figure_color;		
+			
+			this.m_Context.arc(GetIntValue(xPostion),GetIntValue(YPostion),
+			GetIntValue((TempFillRect.right-TempFillRect.left)/2.0),
+			0, Math.PI * 2,false); 
+			
+		} 
+		else if (data.figure_type==DrectType)
+		{
+			var TempFillRect=new CRect(0,0,0,0);
+			TempFillRect.left=GetIntValue(data.figure_rect.left*this.m_fZoomNum+this.OriginalPoint_Bitmap.x)+data.shift_x;
+			TempFillRect.right=GetIntValue(data.figure_rect.right*this.m_fZoomNum+this.OriginalPoint_Bitmap.x)+data.shift_x;
+			TempFillRect.top=GetIntValue(data.figure_rect.top*this.m_fZoomNum+this.OriginalPoint_Bitmap.y)+data.shift_y;
+			TempFillRect.bottom=GetIntValue(data.figure_rect.bottom*this.m_fZoomNum+this.OriginalPoint_Bitmap.y)+data.shift_y;
+			var points=new Array(4);
+			for(var i=0;i<4;i++)
+				points[i]=new CPoint(0,0);
+			points[0].x=TempFillRect.left;
+			points[0].y=TempFillRect.top;
+			points[1].x=TempFillRect.right;
+			points[1].y=TempFillRect.top;
+			points[2].x=TempFillRect.right;
+			points[2].y=TempFillRect.bottom;
+			points[3].x=TempFillRect.left;
+			points[3].y=TempFillRect.bottom;
+			
+			this.m_Context.fillStyle=data.figure_fill.figure_color;
+		}
+	} 	
+	return;
+}
+
+
 function drawTempLines()  //实时显示正在画的线条
-{}
+{
+	if (this.m_TempLinesPointSet.nCPointCount==0)
+	{
+		return;
+	}  
+	//list<CPoint >::iterator FindIterator;
+	var FindIterator=new CPoint(0,0);
+	var FindPointIndex=0;
+	
+	FindIterator=this.m_TempLinesPointSet.m_CPoint[FindPointIndex];
+		
+	this.m_Context.fillStyle = "green";
+	this.m_Context.arc(FindIterator.x,FindIterator.y,FigureControl_Radius,Math.PI * 2,false);
+	this.m_Context.moveTo(FindIterator.x,FindIterator.y); 
+	
+	FindIterator=this.m_TempLinesPointSet.m_CPoint[++FindPointIndex];
+	
+	this.m_Context.fillStyle = "rgb(255,255,0)";
+	
+	for (FindPointIndex;FindPointIndex<this.m_TempLinesPointSet.nCPointCount;FindPointIndex++)
+	{
+		FindIterator=this.m_TempLinesPointSet.m_CPoint[FindPointIndex];
+		
+		this.m_Context.lineTo(FindIterator.x,FindIterator.y);  
+	}
+}
+
 function DrawOutSideLine() //图像外围框 
 {}
 
@@ -242,20 +366,139 @@ function InSubFigureRect(CPoint,CPoint,CPoint)//点是否在直接指定范围�
 function InEllipseRect(CRect,CPoint)//点是否在圆区域内
 {}
 
-function DrawRect(CRect)//绘方框区域
-{}
+function DrawRect(rect)//绘方框区域
+{	
+	this.m_Context.moveTo(rect.left,rect.top);
+	this.m_Context.LineTo(rect.right,rect.top);
+	this.m_Context.LineTo(rect.right,rect.bottom);
+	this.m_Context.LineTo(rect.left,rect.bottom);
+	this.m_Context.LineTo(rect.left,rect.top);	
+}
 
-function DrawEllipseRect(Figure)//绘圆
-{}
+function DrawEllipseRect(data)//绘圆
+{
+	var rect=new CRect(0,0,0,0);
+	rect.left=GetIntValue(data.figure_rect.left*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+data.shift_x;
+	rect.right=GetIntValue(data.figure_rect.right*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+data.shift_x;
+	rect.top=GetIntValue(data.figure_rect.top*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+data.shift_y;
+	rect.bottom=GetIntValue(data.figure_rect.bottom*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+data.shift_y;
+
+	this.m_Contex.fillStyle = data.figure_fill.figure_color;
+	/*this.m_Context.arc(rect.GetCenter().x,
+			rect.GetCenter().y,
+			rect.
+			0, Math.PI * 2,false); */
+
+	
+	//绘小方框
+	if ((data.figure_id==this.m_nCursorInFigureId || data.figure_id== this.SelectFigureId)&& this.b_ShowPointRect)
+	{
+		var point=new CPoint(0,0);
+		point.x=rect.left+GetIntValue((float)(rect.right-rect.left)/2);
+		point.y=rect.top;
+		this.DrawPointRect(cdc,point,0); 
+		point.x=rect.right;
+		point.y=rect.top+GetIntValue((float)(rect.bottom-rect.top)/2);
+		this.DrawPointRect(cdc,point,1); 
+		point.x=rect.left+GetIntValue((float)(rect.right-rect.left)/2);
+		point.y=rect.bottom;
+		this.DrawPointRect(cdc,point,0); 
+		point.x=rect.left;
+		point.y=rect.top+GetIntValue((float)(rect.bottom-rect.top)/2);
+		this.DrawPointRect(cdc,point,1);
+	}
+	//显示图形名
+	///*
+	var ShowNameRect=new CRect(0,0,0,0);
+	ShowNameRect.left=rect.left+5;
+	ShowNameRect.top=rect.top+GetIntValue((rect.bottom-rect.top)/2.0)-5;
+	ShowNameRect.right= ShowNameRect.left+FigureControl_TextLength;
+	ShowNameRect.bottom=ShowNameRect.top+FigureControl_TextLength;
+	
+	this.m_Context.fillText(data.figure_name,ShowNameRect,ShowNameRect.left,
+	ShowNameRect.top);
+}
 
 function DrawDoubleRect(Figure)//绘双方框
-{}
+{
+	var rect=new CRect(0,0,0,0);
+	var rect_outside=new CRect(0,0,0,0);
+	rect.left=GetIntValue(data.figure_rect.left*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+data.shift_x;
+	rect.right=GetIntValue(data.figure_rect.right*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+data.shift_x;
+	rect.top=GetIntValue(data.figure_rect.top*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+data.shift_y;
+	rect.bottom=GetIntValue(data.figure_rect.bottom*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+data.shift_y;
+
+	rect_outside.left=GetIntValue(data.figure_rect_outside.left*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+data.shift_x;
+	rect_outside.right=GetIntValue(data.figure_rect_outside.right*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+data.shift_x;
+	rect_outside.top=GetIntValue(data.figure_rect_outside.top*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+data.shift_y;
+	rect_outside.bottom=GetIntValue(data.figure_rect_outside.bottom*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+data.shift_y;
+	
+	this.m_Contex.fillStyle = data.figure_color;
+	DrawRect(rect);
+	DrawRect(rect_outside); 
+
+//显示小方框
+	if ((data.figure_id==m_nCursorInFigureId  || data.figure_id== SelectFigureId) && b_ShowPointRect)
+	{
+		var point=new CPoint(0,0);
+		point.x=rect.left;
+		point.y=rect.top;
+		DrawPointRect(point,0);
+		point.x=rect.right;
+		point.y=rect.top;
+		DrawPointRect(point,1);
+		point.x=rect.right;
+		point.y=rect.bottom;
+		DrawPointRect(point,0);
+		point.x=rect.left;
+		point.y=rect.bottom;
+		DrawPointRect(point,1);
+
+		point.x=rect_outside.left;
+		point.y=rect_outside.top;
+		DrawPointRect(point,1);
+		point.x=rect_outside.right;
+		point.y=rect_outside.top;
+		DrawPointRect(point,0);
+		point.x=rect_outside.right;
+		point.y=rect_outside.bottom;
+		DrawPointRect(point,1);
+		point.x=rect_outside.left;
+		point.y=rect_outside.bottom;
+		DrawPointRect(point,0);
+	}  
+//显示图形名	 
+	rect.right=rect.left+FigureControl_TextLength; 
+	rect.bottom=rect.top+FigureControl_TextLength;
+	
+	this.m_Context.fillText(data.figure_name,rect.left,rect.top); 
+}
  
  function SelectSubFigureRectSet(CPoint) //确定当前点所在的区域范围集合 BOOL
 {}
 
 function DrawPointRect(CPoint,ColorId)  //绘点方框
-{}
+{
+	var rect=new CRect(0,0,0,0);
+	rect.left=point.x-FigureControl_PointRectDistance;
+	rect.right=point.x+FigureControl_PointRectDistance;
+	rect.top=point.y-FigureControl_PointRectDistance;
+	rect.bottom=point.y+FigureControl_PointRectDistance; 
+	
+	if (ColorId==0)
+	{
+		this.m_Context.fillStyle = "yellow";
+	}
+	else if (ColorId==1)
+	{
+		this.m_Context.fillStyle = "red";
+	} 
+	else if (ColorId==2)
+	{
+		this.m_Context.fillStyle = "white";
+	}	
+	DrawRect(rect);
+}
 
 function PointGoOutSide(CPoint)  //当前点是否已经超出图片移动范围
 {}
@@ -275,8 +518,6 @@ function LoadFromFile(BmpPath) //从文件导入
 function LoadFromBuffer(IMG_OBJ) // 从Buffer导入	
 {}
 
-function AddFigure(Figure)
-{}
 
 function SearchPoint()			//在图形集里面寻找当前鼠标点的近邻 
 {}
@@ -655,9 +896,9 @@ function LButtonDown(point)			 //左键压下
 			if (this.b_DrawRect )
 			{ 
 				//如果开始绘画方框，点击了一个左键
-				if (b_PreDrawRect)
+				if (this.b_PreDrawRect)
 				{
-					b_PreDrawRect=FALSE;
+					this.b_PreDrawRect=false;
 					//方框剩下的三个点
 					point.x-=this.OriginalPoint_Bitmap.x;
 					point.y-=this.OriginalPoint_Bitmap.y;
@@ -898,6 +1139,134 @@ function LButtonUp( point)			//左键弹上
 	
 function LButtonDblClk(point)			//左键双击
 {
+	point.x-=this.x_Distance;
+	point.y-=this.y_Distance; 
+	var tempPoint=new CPoint(0,0);
+	tempPoint.x=GetIntValue((point.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
+	tempPoint.y=GetIntValue((point.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); 
+	if (!PointInCurrentRect(this.m_RectFigure,tempPoint))
+	{
+		return;
+	}   
+//删除多边形边缘点
+	//list<Figure>::iterator Iterator;
+	var Iterator=new Figure;
+	var IfFind=false;
+	var FindIndex=0;
+	Iterator=this.m_FiguresSet.m_Figures[FindIndex];
+	for(FindIndex;FindIndex<this.m_FiguresSet.m_nFigureCount;FindIndex++)
+	{
+		if (Iterator.figure_type==PolyType)
+		{
+			//std::list<CPoint>::iterator PointIterator;
+			var PointIterator=new CPoint(0,0);
+			var FindPointIndex=0;
+			var PointNum=1;
+			PointIterator=Iterator.figure_data.m_CPointp[FindPointIndex];
+			for (FindPointIndex;FindPointIndex<Iterator.figure_data.nCPointCount;FindPointIndex++)
+			{
+				PointNum++;
+				var pt=new CPoint(0,0);
+				pt.x=GetIntValue(PointIterator.x*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+Iterator.shift_x;
+				pt.y=GetIntValue(PointIterator.y*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+Iterator.shift_y;
+				if (PointInPointRect(this.m_cpOriginalPoint_cursor,pt))
+				{ 
+					//删除一个边缘点
+					if (PointNum%2==0)
+					{
+						Iterator.figure_data.eraseCPoint(FindPointIndex);	
+					} 
+					else//添加一个边缘点
+					{
+						var BeginPoint=new CPoint(0,0);
+						var EndPoint=new CPoint(0,0);
+						var MidPoint=new CPoint(0,0);
+						BeginPoint=PointIterator;
+						var NextPoint=FindPointIndex+1;
+						PointIterator=Iterator.figure_data.m_CPointp[NextPoint];
+						
+						if (PointIterator==Iterator.figure_data.end())
+						{
+							break;
+						}
+						
+						EndPoint=PointIterator;
+						MidPoint.x=GetIntValue(((BeginPoint.x+EndPoint.x)/2.0));
+						MidPoint.y=GetIntValue(((BeginPoint.y+EndPoint.y)/2.0)); 
+						Iterator.figure_data.InsertPoint(FindPointIndex,MidPoint);
+						
+					} 
+					IfFind=true;
+					this.RepaintControl();
+					break;
+				}
+			}
+		}
+		if (IfFind==true)
+		{
+			break;
+		} 
+	}
+
+//对多边形的处理	 
+	if (this.b_LButtonDouC==false && this.b_DrawPoly)  //第一次双击，开始画图形
+	{
+		//给控件图形赋值，初始化
+		this.b_LButtonDouC=true; 
+		this.m_TempLinesPointSet.AddCPoint(point);   //实时画时显示
+		//将显示坐标转成真实坐标
+		point.x-=this.OriginalPoint_Bitmap.x;
+		point.y-=this.OriginalPoint_Bitmap.y;
+		point.x=GetIntValue(point.x/this.m_fZoomNum);
+		point.y=GetIntValue(point.y/this.m_fZoomNum);
+		this.CurrentFigure.figure_data.AddCPoint((point));  //存入到列表中  
+	}
+	else if(this.b_LButtonDouC==true && this.b_DrawPoly)   //又一次双击，结束画上次图形
+	{
+		this.b_LButtonDouC=false; 
+		//std::list<CPoint>::iterator PointIterator;
+		var PointIterator=new CPoint(0,0);
+		var BeginPoint=new CPoint(0,0);
+		var EndPoint=new CPoint(0,0);
+		var MidPoint=new CPoint(0,0);
+		var FindPointIndex=0;
+		PointIterator=this.CurrentFigure.figure_data.m_CPoint[FindPointIndex];
+		for (FindPointIndex;FindPointIndex<this.CurrentFigure.figure_data.nCPointCount;FindPointIndex++)
+		{
+			PointIterator=this.CurrentFigure.figure_data.m_CPoint[FindPointIndex];
+			
+			BeginPoint=PointIterator;
+			var NextPoint=FindPointIndex+1;
+			PointIterator=this.CurrentFigure.figure_data.m_CPoint[NextPoint];
+			if (PointIterator==this.CurrentFigure.figure_data.m_CPoint[this.CurrentFigure.figure_data.nCPointCoun-1])
+			{
+				break;
+			}
+			EndPoint=PointIterator;
+			MidPoint.x=GetIntValue(((BeginPoint.x+EndPoint.x)/2.0));
+			MidPoint.y=GetIntValue(((BeginPoint.y+EndPoint.y)/2.0));
+			this.CurrentFigure.figure_data.InsertPoint(FindPointIndex,MidPoint);
+			
+		}
+
+		this.m_nFigureCount++;
+		this.CurrentFigure.figure_id=this.m_nFigureCount;
+		this.CurrentFigure.figure_color=this.m_FigureColor;
+		this.CurrentFigure.figure_type=PolyType;  
+		//CString figurename;
+		//figurename.Format(_T("%d"),m_nFigureCount);
+		this.CurrentFigure.figure_name=this.m_csCurrentDrawFigureName;
+		this.CurrentFigure.ReserverData=this.m_strDataReserved;
+
+		this.m_csCurrentDrawFigureName="";
+		this.m_FiguresSet.AddFigure(this.CurrentFigure);
+		//FinishDraw(CurrentFigure.figure_id);
+		//SetCurrentSelectFigure(CurrentFigure.figure_id);
+		this.CurrentFigure.ClearFigureData();
+		this.m_TempLinesPointSet.ClearData();
+		this.b_DrawPoly=false;
+		this.RepaintControl(); 
+	}  
 }
 
 
@@ -957,11 +1326,42 @@ strReservedData 保留字段
 */
 /************************************************************************/
 function DrawRectFigure(csFigureName,strReservedDat)//绘制方框
-{}
+{
+	this.m_strDataReserved=strReservedDat;
+
+	this.m_csCurrentDrawFigureName=csFigureName;
+	this.b_DrawRect=true;
+	this.b_DrawDoubleRect=false;
+	this.b_DrawPoly=false;
+	this.b_DrawCircle=false; 
+
+	this.b_PreDrawRect=false;
+	this.b_PreDrawDoubleRect=false;
+	this.b_PreDrawCircle=false;
+	this.b_LButtonDouC=false;
+	this.CurrentFigure.ClearFigureData();
+	this.m_TempLinesPointSet.ClearData();
+	return this.b_DrawRect;
+}
+
 function DrawDoubleRectFigure(csFigureName,strReservedData)		//绘制双方框
 {}
 function DrawPolyFigure(csFigureName,strReservedData)				//绘制多边形
-{}
+{
+	this.m_strDataReserved=strReservedData;
+	this.b_DrawRect=false;
+	this.b_DrawDoubleRect=false;
+	this.b_DrawPoly=true;
+	this.b_DrawCircle=false; 
+
+	this.b_PreDrawRect=false;
+	this.b_PreDrawDoubleRect=false;
+	this.b_PreDrawCircle=false;
+	this.b_LButtonDouC=false;
+	this.CurrentFigure.ClearFigureData();
+	this.m_TempLinesPointSet.ClearData();
+	return this.b_DrawRect;
+}
 function DrawCircleFigure(csFigureName,strReservedData)			//绘制圆形 
 {}				
 
@@ -1241,11 +1641,18 @@ function InitFigureControlFromFile(context,canvas,ImageName,Control)
 		//鼠标移动
 		Control.m_Canvas.onmousemove=function(event)
 		{
-		  var pt=new CPoint(event.clientX,event.clientY);
-		  Control.m_bMouseClickFlag=true;
+		  var pt=new CPoint(event.clientX,event.clientY);		  
 		  Control.MouseMove(pt);
 		}
 	}
+	
+	//鼠标移动
+	this.m_Canvas.onmousemove=function(event)
+	{
+	  var pt=new CPoint(event.clientX,event.clientY);	  
+	  Control.MouseMove(pt);
+	}
+	
 	
 	
 	//鼠标松开左键	
@@ -1256,6 +1663,12 @@ function InitFigureControlFromFile(context,canvas,ImageName,Control)
 		Control.LButtonUp(pt);
     }
 
+	//鼠标双击左键	
+	this.m_Canvas.ondblclick=function()
+	{
+		var pt=new CPoint(event.clientX,event.clientY);		
+		Control.LButtonDblClk(pt);
+	}
 }
 	
 
@@ -1321,7 +1734,7 @@ function MouseMove(point)			 //移动鼠标
 		return;
 	}
 
-	if(true)
+	if(this.m_bMouseClickFlag)
 	{
 		this.m_cpCurrentPoint_cursor.x=point.x;
 		this.m_cpCurrentPoint_cursor.y=point.y;  	

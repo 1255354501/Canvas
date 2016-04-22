@@ -62,12 +62,34 @@ function CPoint(x,y)
 	this.y=y;
 }
 
+function GetWidth()
+{
+	return this.right-this.left;
+}
+
+function GetHeight()
+{
+	return this.bottom-this.top;
+}
+
+function GetCenter()
+{
+	var CenterPoint=new CPoint(0,0);
+	CenterPoint.x=this.left+GetIntValue(this.GetWidth()/2.0);
+	CenterPoint.y=this.top+GetIntValue(this.GetHeight()/2.0);
+	return CenterPoint;
+}
+
 function CRect(left,top,right,bottom)
 {
 	this.left=left;
 	this.top=top;
 	this.right=right;
 	this.bottom=bottom;
+	
+	this.GetWidth=GetWidth;
+	this.GetHeight=GetHeight;
+	this.GetCenter=GetCenter;
 }
 
 
@@ -91,6 +113,43 @@ function AddCPoint(point)
 	this.nCPointCount++;
 }
 
+function InsertPoint(CPointId,point)
+{
+	if(CPointId>0 && CPointId<MaxCPointCount)
+	{		
+		this.nCPointCount++;
+		var index=this.nCPointCount;
+		
+		for(index;index>CPointId;index--)
+		{
+			this.m_CPoint[index]=this.m_CPoint[Index-1];
+		}
+		
+		this.m_CPoint[CPointId].x=point.x;
+		this.m_CPoint[CPointId].y=point.y;
+		
+		return true;
+	}	
+	return false;
+}
+
+
+function eraseCPoint(CPointId)
+{
+	var index=CPointId;
+	if(index>0 && index<MaxCPointCount)
+	{
+		for(index;index<this.nCPointCount;index++)
+		{
+			this.m_CPoint[index]=this.m_CPoint[Index+1];
+		}
+		this.nCPointCount--;
+		return true;
+	}
+	else
+		return false;	
+}
+
 function ClearData()
 {
 	for(var n=0;n<MaxCPointCount;n++)
@@ -107,10 +166,13 @@ function figure_data()
 	this.m_CPoint=new Array(MaxCPointCount);
 	for(var Index=0;Index<MaxCPointCount;Index++)
 		this.m_CPoint[Index]=new CPoint(0,0);
+	
 	this.nCPointCount=0;
 	
 	this.AddCPoint=AddCPoint;	
 	this.ClearData=ClearData;
+	this.eraseCPoint=eraseCPoint;
+	this.InsertPoint=InsertPoint;
 }
 
 
@@ -174,7 +236,7 @@ function DistanceToData(zoomData,Ftype)
 function ClearFigureData()
 {
 	this.figure_data.ClearData();	
-	this.this.figure_rect.left=0;
+	this.figure_rect.left=0;
 	this.figure_rect.right=0;
 	this.figure_rect.top=0;
 	this.figure_rect.bottom=0;
@@ -249,7 +311,7 @@ function FiguresSet()
 	
 	this.m_nFigureCount=0;
 	//operations
-	this.AddFiguret=AddFigure;	
+	this.AddFigure=AddFigure;	
 	this.ClearFigureSetData=ClearFigureSetData;
 }
 
