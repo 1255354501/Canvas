@@ -5,7 +5,7 @@ var LineType=0,PolyType=1,RectType=2,DrectType=3,CircleType=4;
 
 //Color Types
 
-var NormalColor=0,GreenColor=1,RedColor=2,YelloColor=3;
+var NormalColor="rgb(255,255,255)",GreenColor="rgb(0,255,0)",RedColor="rgb(255,0,0)",YelloColor="rgb(255,255,0)";
 
 var MaxCPointCount=50;
 var MaxFigureCount=50,FigureControl_ReservedLen=100;
@@ -54,6 +54,62 @@ function GetIntValue(fdata)
 	else
 		return parseInt(fdata-0.5);
 }
+
+function isClass(o){
+    if(o===null) return "Null";
+    if(o===undefined) return "Undefined";
+    return Object.prototype.toString.call(o).slice(8,-1);
+}
+
+function  cloneObj(obj){
+    /*var str, newobj = obj.constructor === Array ? [] : {};
+    if(typeof obj !== 'object'){
+        return;
+    } else if(window.JSON){
+        str = JSON.stringify(obj), //系列化对象
+        newobj = JSON.parse(str); //还原
+    } else {
+        for(var i in obj){
+            newobj[i] = typeof obj[i] === 'object' ? 
+            cloneObj(obj[i]) : obj[i]; 
+        }
+    }
+    return newobj;*/
+	 var result,oClass=isClass(obj);
+        //确定result的类型
+    if(oClass==="Object"){
+        result={};
+    }else if(oClass==="Array"){
+        result=[];
+    }else{
+        return obj;
+    }
+    for(key in obj){
+        var copy=obj[key];
+        if(isClass(copy)=="Object"){
+            result[key]=arguments.callee(copy);//递归调用
+        }else if(isClass(copy)=="Array"){
+            result[key]=arguments.callee(copy);
+        }else{
+            result[key]=obj[key];
+        }
+    }
+    return result;
+}
+
+function  maxValue(a,b)
+{
+	return a>b?a:b;
+}
+
+
+function minValue(a,b)
+{
+	return a<b?a:b;
+}
+
+
+
 //Cpoint Crect Defines-----------------------------------------------------------------------------
 
 function CPoint(x,y)
@@ -62,12 +118,12 @@ function CPoint(x,y)
 	this.y=y;
 }
 
-function GetWidth()
+function Width()
 {
 	return this.right-this.left;
 }
 
-function GetHeight()
+function Height()
 {
 	return this.bottom-this.top;
 }
@@ -75,8 +131,8 @@ function GetHeight()
 function GetCenter()
 {
 	var CenterPoint=new CPoint(0,0);
-	CenterPoint.x=this.left+GetIntValue(this.GetWidth()/2.0);
-	CenterPoint.y=this.top+GetIntValue(this.GetHeight()/2.0);
+	CenterPoint.x=this.left+GetIntValue(this.Width()/2.0);
+	CenterPoint.y=this.top+GetIntValue(this.Height()/2.0);
 	return CenterPoint;
 }
 
@@ -87,8 +143,8 @@ function CRect(left,top,right,bottom)
 	this.right=right;
 	this.bottom=bottom;
 	
-	this.GetWidth=GetWidth;
-	this.GetHeight=GetHeight;
+	this.Width=Width;
+	this.Height=Height;
 	this.GetCenter=GetCenter;
 }
 
@@ -255,6 +311,7 @@ function ClearFigureData()
 }
 
 
+
 function Figure()
 {
 	this.figure_type=LineType;
@@ -265,9 +322,8 @@ function Figure()
 	this.figure_rect_outside=new CRect(0,0,0,0);
 	this.shift_x=0;
 	this.shift_y=0;
-	
-	this.figure_fill=new Array(MaxCPointCount);
-	
+	this.figure_color="rgb(0,255,0)";
+	this.figure_fill=new Array(MaxCPointCount);	
 	for(var Index=0;Index<MaxCPointCount;Index++)
 		this.figure_fill[Index]=new FillFigure(false,NormalColor,0);
 		
@@ -289,7 +345,7 @@ function Figure()
 //FiguresSet-----------------------------------------
 function AddFigure(figure)
 {
-	this.m_Figures[this.m_nFigureCount]=figure;
+	this.m_Figures[this.m_nFigureCount]=cloneObj(figure);
 	this.m_nFigureCount++;
 }
 
@@ -299,6 +355,7 @@ function ClearFigureSetData()
 	{
 		this.m_Figures[n].ClearData();
 	}	
+	this.m_nFigureCount=0;
 }
 
 function FiguresSet()
@@ -326,7 +383,7 @@ function CFigureRect()
 
 function AddFiguretRect(figureRect)
 {
-	this.m_Figures[this.m_nFigureCount]=figure;
+	this.m_FigureRect[this.m_nFigureRectCount]=cloneObj(figureRect);;
 	this.m_nFigureRectCount++;
 }
 
@@ -339,6 +396,7 @@ function ClearFigureRectData()
 		this.m_FigureRect[n].right=0;
 		this.m_FigureRect[n].bottom=0;
 	}	
+	this.m_nFigureRectCount=0;
 }
 
 function FiguresRectSet()
@@ -346,7 +404,7 @@ function FiguresRectSet()
 //attibutes
 	this.m_FigureRect=new Array(MaxCPointCount);
 	for(var Index=0;Index<MaxCPointCount;Index++)
-	this.m_FigureRect[Index]=new CFigureRect();
+		this.m_FigureRect[Index]=new CFigureRect();
 		
 	this.m_nFigureRectCount=0;
 //operations	
@@ -394,6 +452,21 @@ function IMG_OBJ()
 }
 
 
+function getBrowserPosition(element)
+{ 
+	var t=element.offsetTop; 
+	var l=element.offsetLeft; 
+	var w=element.offsetWidth;
+	var h=element.offsetHeight;
+	while(element=element.offsetParent)
+	{ 
+		t+=element.offsetTop; 
+		l+=element.offsetLeft; 
+	} 
+	
+	var Rect=new CRect(l,t,l+w,t+h);
+	return Rect;
+}
 
 
 

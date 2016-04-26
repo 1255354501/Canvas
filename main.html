@@ -13,17 +13,54 @@
 			}
 			
 		</style>
-	</head>
-	<body height="100%" width="100%">
-		
-        <input name="Rect" type="button" onClick="FigureControlTest.DrawPolyFigure('name','');">
         
-        <canvas id="canvas" width="800" height="800"></canvas>
         
         <script type="text/javascript" src="Figure.js"></script>
 			<script type="text/javascript" src="FigureControlFun.js"></script>
 		<script type="text/javascript" src="FigureControl.js"></script>
 	
-		<script type="text/javascript" src="main.js"></script>	
+		
+	</head>
+	<body height="100%" width="100%">
+		<table>
+        <tr>
+        	<td><input name="Rect" type="button" 
+            value="多边形"  sytle="width=50px;height=50px;"onClick="FigureControlTest.DrawPolyFigure('name','');">
+            </td>
+            <td>
+            <input name="Rect" type="button" 
+            	value="移动图形"  sytle="width=50px;height=50px;"onClick="FigureControlTest.SetMoveAllFigures(true);">
+            </td>
+             <td>
+             <input name="Rect" type="button" 
+            	value="移动图像"  sytle="width=50px;height=50px;"onClick="FigureControlTest.SetMoveAllFigures(false);">
+            </td>
+        </tr>
+         <tr>
+        	<td><input name="Rect" type="button" 
+            value="矩形"  sytle="width=50px;height=50px;"onClick="FigureControlTest.DrawRectFigure('name','');">
+            </td>
+        </tr>
+         <tr>
+        	<td><input name="Rect" type="button" 
+            value="双方框"  sytle="width=50px;height=50px;"onClick="FigureControlTest.DrawDoubleRectFigure('name','');">
+            </td>
+          
+        </tr>
+         <tr>
+        	<td><input name="Rect" type="button" 
+            value="圆形"  sytle="width=50px;height=50px;"onClick="FigureControlTest.DrawCircleFigure('name','');">
+            </td>
+        </tr>
+        <tr>
+        <td>
+        	
+        </td>
+        </tr>
+        
+         <canvas id="canvas" width="800" height="800"></canvas>
+             <script type="text/javascript" src="main.js"></script>
+       
+        	
 	</body>
 </html>
