@@ -1,13 +1,14 @@
 
  var FigureControlTest;
  
-  
+  var testCount=0;
 
 (function int(){	
     canvas=document.getElementById('canvas');
     context=canvas.getContext('2d');
 	
-	FigureControlTest=new FigureControl;
+	FigureControlTest=new FigureControl;	
+	FigureControlTest.InitFigureControl();
 	FigureControlTest.InitFigureControlFromFile(context,canvas,"3.bmp",FigureControlTest);	
 	
 	

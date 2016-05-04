@@ -127,6 +127,7 @@ function RepaintControl() //控件重绘  CPaintDC*
 	
 	
 }
+
 // FigureData
 function ConnectLine(data) //有线组成的图形形连线
 {
@@ -141,11 +142,8 @@ function ConnectLine(data) //有线组成的图形形连线
 		return;
 	}	
 	FindIterator=data.figure_data.m_CPoint[0];
-	this.nCurrentPointIndex++;
-	this.m_Context.strokeStyle =data.figure_color;
-	this.m_Context.beginPath();
-	this.m_Context.moveTo(GetIntValue(FindIterator.x*this.m_fZoomNum)+MovePoint.x+data.shift_x,GetIntValue(FindIterator.y*this.m_fZoomNum)+MovePoint.y+data.shift_y);  
-	this.m_Context.stroke();
+	nCurrentPointIndex++;
+	
 	//显示第一个小方框
 	if ((data.figure_id==this.m_nCursorInFigureId || data.figure_id== this.SelectFigureId) && this.b_ShowPointRect)
 	{
@@ -154,6 +152,11 @@ function ConnectLine(data) //有线组成的图形形连线
 		point.y=GetIntValue(FindIterator.y*this.m_fZoomNum)+MovePoint.y+data.shift_y;
 		this.DrawPointRect(point,0);				
 	} 
+	this.m_Context.strokeStyle =data.figure_color;
+	this.m_Context.beginPath();
+	this.m_Context.moveTo(GetIntValue(FindIterator.x*this.m_fZoomNum)+MovePoint.x+data.shift_x,GetIntValue(FindIterator.y*this.m_fZoomNum)+MovePoint.y+data.shift_y);  
+	this.m_Context.stroke();
+	
 	if (data.figure_type==RectType)
 	{
 		data.figure_rect.left=FindIterator.x;
@@ -176,8 +179,7 @@ function ConnectLine(data) //有线组成的图形形连线
 	var TempColorNum=0;
 	for (nPointIndex;nPointIndex<data.figure_data.nCPointCount;nPointIndex++)
 	{ 
-	FindIterator=data.figure_data.m_CPoint[nPointIndex];
- 		nCurrentPointIndex++;		
+		FindIterator=data.figure_data.m_CPoint[nPointIndex];
 		if (nCurrentPointIndex==3)
 		{
 			data.figure_rect.right=FindIterator.x;		
@@ -187,8 +189,26 @@ function ConnectLine(data) //有线组成的图形形连线
 		this.m_Context.strokeStyle =data.figure_color;
 		this.m_Context.lineTo(GetIntValue(FindIterator.x*this.m_fZoomNum)+MovePoint.x+data.shift_x,
 		GetIntValue(FindIterator.y*this.m_fZoomNum)+MovePoint.y+data.shift_y);
-		this.m_Context.stroke();
-		//显示小方框 
+		this.m_Context.stroke();		
+	}
+	FindIterator=data.figure_data.m_CPoint[0];	
+	this.m_Context.strokeStyle =data.figure_color;
+	this.m_Context.lineTo(GetIntValue(FindIterator.x*this.m_fZoomNum)+MovePoint.x+data.shift_x,
+	GetIntValue(FindIterator.y*this.m_fZoomNum)+MovePoint.y+data.shift_y);
+	this.m_Context.stroke();
+	
+	
+	nPointIndex=1;
+	//显示小方框 
+	for (nPointIndex;nPointIndex<data.figure_data.nCPointCount;nPointIndex++)
+	{ 
+		FindIterator=data.figure_data.m_CPoint[nPointIndex];
+ 		nCurrentPointIndex++;		
+		if (nCurrentPointIndex==3)
+		{
+			data.figure_rect.right=FindIterator.x;		
+			data.figure_rect.bottom=FindIterator.y;
+		}		
 		if ((data.figure_id==this.m_nCursorInFigureId  || data.figure_id== this.SelectFigureId)  && this.b_ShowPointRect)
 		{  
 			var point=new CPoint(0,0);
@@ -215,7 +235,7 @@ function ConnectLine(data) //有线组成的图形形连线
 				{
 					point.x=GetIntValue((FindIterator.x+data.figure_rect.Width()/2.0)*this.m_fZoomNum)+MovePoint.x+data.shift_x;
 					point.y=GetIntValue(FindIterator.y*this.m_fZoomNum)+MovePoint.y+data.shift_y;
-					DrawPointRect(point,2);
+					this.DrawPointRect(point,2);
 
 					point.x=GetIntValue(FindIterator.x*this.m_fZoomNum)+MovePoint.x+data.shift_x;
 					point.y=GetIntValue((FindIterator.y-data.figure_rect.Height()/2.0)*this.m_fZoomNum)+MovePoint.y+data.shift_y;
@@ -226,11 +246,9 @@ function ConnectLine(data) //有线组成的图形形连线
 		} 		
 	}
 	
-	FindIterator=data.figure_data.m_CPoint[0];
-	this.m_Context.strokeStyle =data.figure_color;
-	this.m_Context.lineTo(GetIntValue(FindIterator.x*this.m_fZoomNum)+MovePoint.x+data.shift_x,
-	GetIntValue(FindIterator.y*this.m_fZoomNum)+MovePoint.y+data.shift_y);
-	this.m_Context.stroke();
+	
+	
+	
 	if ((data.figure_id==this.m_nCursorInFigureId  || data.figure_id== this.SelectFigureId)
 		 && this.b_LeftButtonDown && data.figure_type==RectType && data.bShowSqure)
 	{
@@ -470,30 +488,44 @@ function DrawEllipseRect(data)//绘圆
 	rect.right=GetIntValue(data.figure_rect.right*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+data.shift_x;
 	rect.top=GetIntValue(data.figure_rect.top*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+data.shift_y;
 	rect.bottom=GetIntValue(data.figure_rect.bottom*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+data.shift_y;
-
-	this.m_Context.fillStyle = data.figure_color;
-	this.m_Context.arc(rect.GetCenter().x,
-			rect.GetCenter().y,
-			rect.Height()/2.0,
-			0, Math.PI * 2,false); 
+	
+	
+	var x=rect.GetCenter().x;
+	var y=rect.GetCenter().y;
+	var a=rect.Width()/2.0;
+	var b=rect.Height()/2.0;
+ 	
+    var r = (a > b) ? a : b;
+    var ratioX = a / r;
+    var ratioY = b / r;
+   
+  	this.m_Context.save();
+    this.m_Context.scale(ratioX, ratioY);
+    this.m_Context.beginPath();
+	this.m_Context.strokeStyle =data.figure_color;
+    this.m_Context.arc(x / ratioX, y / ratioY, r, 0, 2 * Math.PI, false);
+	this.m_Context.stroke();
+    //this.m_Context.closePath();
+    this.m_Context.restore();
+    //this.m_Context.fill();
 
 	
 	//绘小方框
 	if ((data.figure_id==this.m_nCursorInFigureId || data.figure_id== this.SelectFigureId)&& this.b_ShowPointRect)
 	{
 		var point=new CPoint(0,0);
-		point.x=rect.left+GetIntValue((float)(rect.right-rect.left)/2);
+		point.x=rect.left+GetIntValue((rect.right-rect.left)/2);
 		point.y=rect.top;
-		this.DrawPointRect(cdc,point,0); 
+		this.DrawPointRect(point,0); 
 		point.x=rect.right;
-		point.y=rect.top+GetIntValue((float)(rect.bottom-rect.top)/2);
-		this.DrawPointRect(cdc,point,1); 
-		point.x=rect.left+GetIntValue((float)(rect.right-rect.left)/2);
+		point.y=rect.top+GetIntValue((rect.bottom-rect.top)/2);
+		this.DrawPointRect(point,1); 
+		point.x=rect.left+GetIntValue((rect.right-rect.left)/2);
 		point.y=rect.bottom;
-		this.DrawPointRect(cdc,point,0); 
+		this.DrawPointRect(point,0); 
 		point.x=rect.left;
-		point.y=rect.top+GetIntValue((float)(rect.bottom-rect.top)/2);
-		this.DrawPointRect(cdc,point,1);
+		point.y=rect.top+GetIntValue((rect.bottom-rect.top)/2);
+		this.DrawPointRect(point,1);
 	}
 	//显示图形名
 	///*
@@ -576,10 +608,10 @@ function DrawDoubleRect(data)//绘双方框
 	var LinePointBegin=new CPoint(0,0);
 	var LinePointEnd=new CPoint(0,0);
 	var Iterator=new Figure;
-	var FigureIndex=0;
-	Iterator=this.m_FiguresSet.m_Figures[FigureIndex];
+	var FigureIndex=0;	
 	for(FigureIndex;FigureIndex<this.m_FiguresSet.m_nFigureCount;FigureIndex++)
 	{   
+		Iterator=this.m_FiguresSet.m_Figures[FigureIndex];
 		var PointInRect=0;  
 		if (Iterator.figure_type==DrectType)
 		{
@@ -600,7 +632,7 @@ function DrawDoubleRect(data)//绘双方框
 				&& In_OriginalPoint_cursor.y>=rect_outside.top 
 				&& In_OriginalPoint_cursor.y<=rect_outside.bottom)
 			{
-				var CurrentFigur=new CFigureRect;
+				var CurrentFigure=new CFigureRect;
 				CurrentFigure.m_nFigureID = Iterator.figure_id;
 				CurrentFigure.m_FigureRect = Iterator.figure_rect_outside;
 				this.m_SelectSubFigureRectIdSet.AddFiguretRect(CurrentFigure);
@@ -671,7 +703,7 @@ function DrawDoubleRect(data)//绘双方框
 					var CurrentFigure=new CFigureRect;
 					CurrentFigure.m_nFigureID = Iterator.figure_id;
 					CurrentFigure.m_FigureRect = Iterator.figure_rect;
-					m_SelectSubFigureRectIdSet.AddFiguretRect(CurrentFigure);
+					this.m_SelectSubFigureRectIdSet.AddFiguretRect(CurrentFigure);
 					return true;
 					//break;
 				}
@@ -734,21 +766,21 @@ function DrawDoubleRect(data)//绘双方框
 						default:
 							break;
 						}					
-						if (PointInPointRect(In_OriginalPoint_cursor,CenterPoint))
+						if (this.PointInPointRect(In_OriginalPoint_cursor,CenterPoint))
 						{
 							var CurrentFigure=new CFigureRect;
 							CurrentFigure.m_nFigureID = Iterator.figure_id;
-							GetFigureOutsideRect(CurrentFigure.m_FigureRect, Iterator);
-							m_SelectSubFigureRectIdSet.push_back(CurrentFigure);
+							this.GetFigureOutsideRect(CurrentFigure.m_FigureRect, Iterator);
+							this.m_SelectSubFigureRectIdSet.AddFiguretRect(CurrentFigure);
 							return true;
 							//break;
 						}
 					}
-					if (PointInPointRect(In_OriginalPoint_cursor,CornerPoint))
+					if (this.PointInPointRect(In_OriginalPoint_cursor,CornerPoint))
 					{
 						var CurrentFigure=new CFigureRect;
 						CurrentFigure.m_nFigureID = Iterator.figure_id;
-						GetFigureOutsideRect(CurrentFigure.m_FigureRect, Iterator);
+						this.GetFigureOutsideRect(CurrentFigure.m_FigureRect, Iterator);
 						this.m_SelectSubFigureRectIdSet.AddFiguretRect(CurrentFigure);
 						return true;
 						//break;
@@ -759,7 +791,7 @@ function DrawDoubleRect(data)//绘双方框
 				LinePointEnd.x=GetIntValue(FindIterator.x*this.m_fZoomNum)+MovePoint.x+Iterator.shift_x;
 				LinePointEnd.y=GetIntValue(FindIterator.y*this.m_fZoomNum)+MovePoint.y+Iterator.shift_y; 
 				
-				if (InSubFigureRect(In_OriginalPoint_cursor,LinePointBegin,LinePointEnd))
+				if (this.InSubFigureRect(In_OriginalPoint_cursor,LinePointBegin,LinePointEnd))
 				{
 					PointInRect++;
 				}  
@@ -768,7 +800,7 @@ function DrawDoubleRect(data)//绘双方框
 				{ 
 					var CurrentFigure=new CFigureRect;
 					CurrentFigure.m_nFigureID = Iterator.figure_id;
-					GetFigureOutsideRect(CurrentFigure.m_FigureRect, Iterator);
+					this.GetFigureOutsideRect(CurrentFigure.m_FigureRect, Iterator);
 					this.m_SelectSubFigureRectIdSet.AddFiguretRect(CurrentFigure);
 					//break;
 				}	
@@ -777,12 +809,12 @@ function DrawDoubleRect(data)//绘双方框
 				CornerPoint.x=LinePointEnd.x;
 				CornerPoint.y=LinePointEnd.y;				
 
-				if (PointInPointRect(In_OriginalPoint_cursor,CornerPoint))
+				if (this.PointInPointRect(In_OriginalPoint_cursor,CornerPoint))
 				{
 					var CurrentFigure=new CFigureRect;
 					CurrentFigure.m_nFigureID = Iterator.figure_id;
-					GetFigureOutsideRect(CurrentFigure.m_FigureRect, Iterator);
-					m_SelectSubFigureRectIdSet.push_back(CurrentFigure);
+					this.GetFigureOutsideRect(CurrentFigure.m_FigureRect, Iterator);
+					this.m_SelectSubFigureRectIdSet.AddFiguretRect(CurrentFigure);
 					return true; 
 					//break;
 				}
@@ -819,17 +851,71 @@ function DrawPointRect(point,ColorId)  //绘点方框
 	this.DrawRect(rect);
 }
 
-function PointGoOutSide(CPoint)  //当前点是否已经超出图片移动范围
-{}
+function PointGoOutSide(point)  //当前点是否已经超出图片移动范围
+{
+	if(point.x<this.OriginalPoint_Bitmap.x || point.y<this.OriginalPoint_Bitmap.y)
+	{ 
+		return true;
+	}
+	if ( point.x>this.OriginalPoint_Bitmap.x+this.m_RectFigure.Width()*this.m_fZoomNum 
+	|| point.y>this.OriginalPoint_Bitmap.y+this.m_RectFigure.Height()*this.m_fZoomNum)
+	{	 
+		return true;
+	}  
+	return false;
+}
 
-function PointInPointRect(CPoint,CPoint)  //A点是否在B点区域范围内
-{}
+function PointInPointRect(pt,rect_point)  //A点是否在B点区域范围内
+{
+	var rect=new CRect(0,0,0,0);
+	var RectSize=FigureControl_PointRectDistance;
+	rect.left=rect_point.x-RectSize;
+	rect.right=rect_point.x+RectSize;
+	rect.top=rect_point.y-RectSize;
+	rect.bottom=rect_point.y+RectSize;
+	if (PointInRect(pt,rect))
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
-function PointInRect(CPoint ,CRect)  //点是否在方框区域内
-{}
+function PointInRect(point ,rect)  //点是否在方框区域内
+{
+	if (point.x>=rect.left && point.x<=rect.right && point.y>=rect.top && point.y<=rect.bottom)
+	{
+		return true;
+	}	 
+	else
+		return false;
+}
 
-function PointInRectEdge(CPoint,CRect,RectCorner)// 点是否在方框边缘区域内
-{}
+function PointInRectEdge(point,rect,num)// 点是否在方框边缘区域内
+{
+	if (point.x<=rect.left && point.y<=rect.top && num==LeftTop)
+	{
+		return true;
+	}
+	else if (point.x>=rect.right && point.y<=rect.top && num==RightTop)
+	{
+		return true;
+	}
+	else if (point.x>=rect.right && point.y>=rect.bottom && num==RightBottom)
+	{
+		return true;
+	}
+	else if (point.x<=rect.left && point.y>=rect.bottom&& num==LeftBottom)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
 
 function LoadFromFile(BmpPath) //从文件导入
 {}
@@ -839,7 +925,175 @@ function LoadFromBuffer(IMG_OBJ) // 从Buffer导入
 
 
 function SearchPoint()			//在图形集里面寻找当前鼠标点的近邻 
-{}
+{
+	var In_OriginalPoint_cursor=new CPoint(0,0);  //当前鼠标所在位置
+	PointEqual(In_OriginalPoint_cursor,this.m_cpOriginalPoint_cursor);
+	var Iterator=new   Figure;
+	var nFigureIndex=0;
+	for(nFigureIndex;nFigureIndex<this.m_FiguresSet.m_nFigureCount;nFigureIndex++)
+	{
+		 //确定单签选中点
+		 Iterator=this.m_FiguresSet.m_Figures[nFigureIndex];
+		if (Iterator.figure_id==this.m_nCursorInFigureId)
+		{
+			if (Iterator.figure_type==DrectType)
+			{
+				var rect=new CRect(0,0,0,0);
+				var rect_outside=new CRect(0,0,0,0);
+				rect.left=GetIntValue(Iterator.figure_rect.left*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+Iterator.shift_x;
+				rect.right=GetIntValue(Iterator.figure_rect.right*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+Iterator.shift_x;
+				rect.top=GetIntValue(Iterator.figure_rect.top*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+Iterator.shift_y;
+				rect.bottom=GetIntValue(Iterator.figure_rect.bottom*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+Iterator.shift_y; 
+				rect_outside.left=GetIntValue(Iterator.figure_rect_outside.left*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+Iterator.shift_x;
+				rect_outside.right=GetIntValue(Iterator.figure_rect_outside.right*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+Iterator.shift_x;
+				rect_outside.top=GetIntValue(Iterator.figure_rect_outside.top*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+Iterator.shift_y;
+				rect_outside.bottom=GetIntValue(Iterator.figure_rect_outside.bottom*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+Iterator.shift_y; 
+				var pt=new Array(9);
+				for (var nPt=0;nPt<9;nPt++)
+					pt[nPt]=new CPoint(0,0); 
+				pt[1].x=rect.left;
+				pt[1].y=rect.top;
+				pt[2].x=rect.right;
+				pt[2].y=rect.top;
+				pt[3].x=rect.right;
+				pt[3].y=rect.bottom;
+				pt[4].x=rect.left;
+				pt[4].y=rect.bottom;
+				pt[5].x=rect_outside.left;
+				pt[5].y=rect_outside.top;
+				pt[6].x=rect_outside.right;
+				pt[6].y=rect_outside.top;
+				pt[7].x=rect_outside.right;
+				pt[7].y=rect_outside.bottom;
+				pt[8].x=rect_outside.left;
+				pt[8].y=rect_outside.bottom; 
+				for (var i=1;i<=8;i++)
+				{
+					if (this.PointInPointRect(In_OriginalPoint_cursor,pt[i]))
+					{
+						this.CurrentSelectPoint.Figure_id=Iterator.figure_id;
+						this.CurrentSelectPoint.Figure_point.x=GetIntValue((pt[i].x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
+						this.CurrentSelectPoint.Figure_point.y=GetIntValue((pt[i].y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
+						this.CurrentSelectPoint.nPointIndex=i;
+						//已经找到该点，返回 
+						this.b_FigurePointSelect=true;
+						return; 
+					}
+					else
+					{
+						this.b_FigurePointSelect=false;
+					}
+
+				} 
+			}
+			else if (Iterator.figure_type==CircleType)
+			{
+				var rect=new CRect(0,0,0,0);
+				rect.left=GetIntValue(Iterator.figure_rect.left*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+Iterator.shift_x;
+				rect.right=GetIntValue(Iterator.figure_rect.right*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+Iterator.shift_x;
+				rect.top=GetIntValue(Iterator.figure_rect.top*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+Iterator.shift_y;
+				rect.bottom=GetIntValue(Iterator.figure_rect.bottom*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+Iterator.shift_y; 
+				var pt=new Array(5);
+				for (var nPt=0;nPt<5;nPt++)
+					pt[nPt]=new CPoint(0,0); 
+				pt[1].x=rect.left+GetIntValue(((rect.right-rect.left)/2));
+				pt[1].y=rect.top; 
+				pt[2].x=rect.right;
+				pt[2].y=rect.top+GetIntValue(((rect.bottom-rect.top)/2)); 
+				pt[3].x=rect.left+GetIntValue(((rect.right-rect.left)/2));
+				pt[3].y=rect.bottom; 
+				pt[4].x=rect.left;
+				pt[4].y=rect.top+GetIntValue(((rect.bottom-rect.top)/2)); 
+				for (var i=1;i<=4;i++)
+				{
+					if (PointInPointRect(In_OriginalPoint_cursor,pt[i]))
+					{
+						this.CurrentSelectPoint.Figure_id=Iterator.figure_id;
+						this.CurrentSelectPoint.Figure_point.x=GetIntValue((pt[i].x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
+						this.CurrentSelectPoint.Figure_point.y=GetIntValue((pt[i].y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); 
+						//已经找到该点，返回 
+						this.b_FigurePointSelect=true;
+						this.CurrentSelectPoint.nPointIndex=i;
+						return;
+
+					}
+					else
+					{
+						this.b_FigurePointSelect=false;
+					}
+				}
+			}
+			else if (Iterator.figure_type==PolyType || Iterator.figure_type==RectType)
+			{				
+				var FindIterator=new CPoint(0,0);
+				var nPointIndex=0;
+				var centerPoint=new CPoint(0,0);
+				var nFindPointIndex=0;
+				for (nFindPointIndex;nFindPointIndex<Iterator.figure_data.nCPointCount;nFindPointIndex++)
+				{
+					FindIterator=Iterator.figure_data.m_CPoint[nFindPointIndex];
+					nPointIndex++;
+					var pt=new CPoint(0,0); 
+					
+					pt.x=GetIntValue(FindIterator.x*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+Iterator.shift_x;
+					pt.y=GetIntValue(FindIterator.y*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+Iterator.shift_y;
+
+					centerPoint.x=pt.x;
+					centerPoint.y=pt.y;
+					if (nPointIndex<=4 && Iterator.figure_type==RectType)
+					{
+						switch(nPointIndex)
+						{
+						case 1:
+							centerPoint.x=GetIntValue((FindIterator.x+Iterator.figure_rect.Width()/2.0)*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+Iterator.shift_x;
+							break;
+						case 2:
+							centerPoint.y=GetIntValue((FindIterator.y+Iterator.figure_rect.Height()/2.0)*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+Iterator.shift_y;
+							break;
+						case 3:
+							centerPoint.x=GetIntValue((FindIterator.x-Iterator.figure_rect.Width()/2.0)*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+Iterator.shift_x;
+							break;
+						case 4:
+							centerPoint.y=GetIntValue((FindIterator.y-Iterator.figure_rect.Height()/2.0)*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+Iterator.shift_y;
+							break;
+						default:
+							break;
+						}
+						if (this.PointInPointRect(In_OriginalPoint_cursor,centerPoint))
+						{ 
+							this.CurrentSelectPoint.Figure_id=Iterator.figure_id;
+							this.CurrentSelectPoint.Figure_point.x=centerPoint.x;
+							this.CurrentSelectPoint.Figure_point.y=centerPoint.y;
+							this.CurrentSelectPoint.nPointIndex=nPointIndex+4;
+							this.b_FigurePointSelect=true;
+							//已经找到该点，返回
+							return; 
+						}
+					}
+
+					if (this.PointInPointRect(In_OriginalPoint_cursor,pt))
+					{ 
+						this.CurrentSelectPoint.Figure_id=Iterator.figure_id;
+						this.CurrentSelectPoint.Figure_point.x=FindIterator.x;
+						this.CurrentSelectPoint.Figure_point.y=FindIterator.y;
+						this.b_FigurePointSelect=true;
+						this.CurrentSelectPoint.nPointIndex=nPointIndex;
+						//已经找到该点，返回
+						return; 
+					} 
+					else
+					{
+						this.b_FigurePointSelect=false;
+					}
+				}
+			}
+		}
+		else
+		{
+			this.b_FigurePointSelect=false;
+		}
+	}
+}
 
 function SetFillStyle(nIndex) //设置填充风格
 {}
@@ -850,14 +1104,61 @@ function GetFillStyle(nIndex)		//获取填充风格；
 function ShowOtherFigures()  //显示剩余的一些图形形
 {}
 
-function setInitZoomScale(fdata)				// 初始缩放比率，放大的，为负数
-{}
+function setInitZoomScale(num)				// 初始缩放比率，放大的，为负数
+{
+	num=-num;
+	this.m_nScrollRate=GetIntValue(num*10);
+	if (num>0)
+	{   //最大放大倍率
+		if (num<-60)
+		{
+			return false;
+		} 
+		this.m_fZoomNum= Math.pow(FigureControl_ScaleBot,this.m_nScrollRate);  
+		this.m_ImageHeight=this.m_ClientRect.height*this.m_fZoomNum;
+		this.m_ImageWeith=this.m_ClientRect.width*this.m_fZoomNum;
+		this.m_OldImageWeith=this.m_ClientRect.width*Math.pow(FigureControl_ScaleBot,this.m_nScrollRate+1);
+		this.m_OldImageHeight=this.m_ClientRect.height*Math.pow(FigureControl_ScaleBot,this.m_nScrollRate+1);
+		this.m_CurrentDistance.x=GetIntValue((this.m_ImageWeith-this.m_OldImageWeith)/2);
+		this.m_CurrentDistance.y=GetIntValue((this.m_ImageHeight-this.m_OldImageHeight)/2);
+		this.OriginalPoint_Bitmap.x=(this.OriginalPoint_Bitmap.x-this.m_CurrentDistance.x); 
+		this.OriginalPoint_Bitmap.y=(this.OriginalPoint_Bitmap.y-this.m_CurrentDistance.y);
+
+	} 
+	else 
+	{	  
+		if (num>60)
+		{
+			return false;
+		} 
+		this.m_fZoomNum=Math.pow(FigureControl_ScaleBot,this.m_nScrollRate); 
+		this.m_ImageHeight=this.m_ClientRect.height*this.m_fZoomNum;
+		this.m_ImageWeith=this.m_ClientRect.width*this.m_fZoomNum; 
+		this.m_OldImageWeith=this.m_ClientRect.width*Math.pow(FigureControl_ScaleBot,this.m_nScrollRate-1);
+		this.m_OldImageHeight=this.m_ClientRect.height*Math.pow(FigureControl_ScaleBot,this.m_nScrollRate-1);
+		this.m_CurrentDistance.x=-GetIntValue((this.m_OldImageWeith-this.m_ImageWeith)/2);
+		this.m_CurrentDistance.y=-GetIntValue((this.m_OldImageHeight-this.m_ImageHeight)/2);
+		this.OriginalPoint_Bitmap.x=(this.OriginalPoint_Bitmap.x-this.m_CurrentDistance.x);
+		this.OriginalPoint_Bitmap.y=(this.OriginalPoint_Bitmap.y-this.m_CurrentDistance.y);
+	}     
+	this.RepaintControl(); 
+	return true;
+}
 
 function ProcessMaskImage(int ,int)  //显示Mask图形 
 {}
 
 function ShiftImageToCenter()  //初始图像居中 
-{}
+{
+	var temp_x=0,temp_y=0;   
+	temp_x=GetIntValue((this.m_ClientRect.width-this.m_Image.width*this.m_fZoomNum)/2);
+	temp_y=GetIntValue((this.m_ClientRect.height-this.m_Image.height*this.m_fZoomNum)/2);
+	this.OriginalPoint_Bitmap.x=temp_x;
+	this.OriginalPoint_Bitmap.y=temp_y; 
+	this.m_nControlWidth=temp_x;
+	this.m_nControlHeight=temp_y;
+	this.RepaintControl();
+}
 
 function FinishDraw(nIndex)
 {}
@@ -887,7 +1188,7 @@ function LButtonDown(point)			 //左键压下
 	m_nCursorInFigureId=0; 
 	//判断当前点选中了哪些区域
 	this.SelectSubFigureRectSet(this.m_cpOriginalPoint_cursor);  
-	if (m_SelectSubFigureRectIdSet.m_nFigureRectCount>0 && this.b_LButtonDouC==FALSE ) 
+	if (m_SelectSubFigureRectIdSet.m_nFigureRectCount>0 && this.b_LButtonDouC==false ) 
 	{
 		//list<CFigureRect>::iterator FindIterator;
 		var FindIterator=new CFigureRect;
@@ -1039,7 +1340,7 @@ function LButtonDown(point)			 //左键压下
 				}
 				else
 				{
-					this.b_PreDrawDoubleRect=TRUE;
+					this.b_PreDrawDoubleRect=true;
 
 					//每次只有一个图形在绘制
 					point.x-=this.OriginalPoint_Bitmap.x;
@@ -1055,7 +1356,7 @@ function LButtonDown(point)			 //左键压下
 			}
 			else
 			{
-				this.b_PreDrawDoubleRect=FALSE;
+				this.b_PreDrawDoubleRect=false;
 			} 
 
 			//开始绘制圆
@@ -1090,7 +1391,7 @@ function LButtonDown(point)			 //左键压下
 				}
 				else
 				{ 
-					this.b_PreDrawCircle=TRUE;
+					this.b_PreDrawCircle=true;
 					point.x-=this.OriginalPoint_Bitmap.x;
 					point.y-=this.OriginalPoint_Bitmap.y;
 					point.x=GetIntValue(point.x/this.m_fZoomNum);
@@ -1139,7 +1440,7 @@ function MouseWheel(zDelta, pt)  //滚动鼠标中建
 			return false; 
 		}
 		this.m_nScrollRate--;
-		this.m_fZoomNum= Math.pow(FigureControl_ScaleBot,this.m_nScrollRate);  
+		this.m_fZoomNum=Math.pow(FigureControl_ScaleBot,this.m_nScrollRate);  
 		var TestX=0,TestY=0;
 		TestX=InImageWidth*(this.m_fZoomNum-Math.pow(FigureControl_ScaleBot,this.m_nScrollRate+1));
 		TestY=InImageHight*(this.m_fZoomNum-Math.pow(FigureControl_ScaleBot,this.m_nScrollRate+1));
@@ -1154,7 +1455,7 @@ function MouseWheel(zDelta, pt)  //滚动鼠标中建
 			return false;
 		}
 		this.m_nScrollRate++;
-		this.m_fZoomNum= Math.pow(FigureControl_ScaleBot,this.m_nScrollRate); 
+		this.m_fZoomNum=Math.pow(FigureControl_ScaleBot,this.m_nScrollRate); 
 		var TestX=0,TestY=0;
 		TestX=(InImageWidth*(this.m_fZoomNum- Math.pow(FigureControl_ScaleBot,this.m_nScrollRate-1)));
 		TestY=(InImageHight*(this.m_fZoomNum- Math.pow(FigureControl_ScaleBot,this.m_nScrollRate-1)));
@@ -1630,7 +1931,9 @@ function SetDRectChooseType(bAllShift)
 {}
 //图形形是否能够移动
 function SetFigureMoveStatus(bStatus)		
-{}
+{
+	this.b_SubFiguresMove=bStatus;
+}
 //显示边小方框
 function ShowPointRect(bShow)			
 {}
@@ -1832,8 +2135,33 @@ function SetMoveAllFigures(bMove)
 	this.b_MoveAllFigures=bMove;
 }
 //设置图像根据当前控件大小缩放
-function SetFitFillControl(nImageWidth,nImageHeight,nWidth,nHeight)
-{}
+function SetFitFillControl()
+{
+	var nImageWidth=this.m_Image.width;
+	var nImageHeight=this.m_Image.height;
+	var nWidth=this.m_ClientRect.width;
+	var nHeight=this.m_ClientRect.height;
+	var TempNum,fZoomNum=1;	
+	TempNum=(nHeight*1.0/nImageHeight);
+	fZoomNum=TempNum;
+
+	TempNum=(nWidth*1.0/nImageWidth);
+	if (fZoomNum>TempNum)
+	{
+		fZoomNum=TempNum;
+	}
+	var fMinValue=1.0;
+	for (var i=FigureControl_MaxZoomScale;i<FigureControl_MaxZoomScale*-1;i++)
+	{
+		if (Math.abs(Math.pow(FigureControl_ScaleBot,i)-fZoomNum)<fMinValue)
+		{
+			fMinValue=Math.abs(Math.pow(FigureControl_ScaleBot,i)-fZoomNum);
+			this.m_nScrollRate=i;
+		}
+	}
+	this.m_fZoomNum=Math.pow(FigureControl_ScaleBot,this.m_nScrollRate);
+	this.RepaintControl();
+}
 //填充当前图形  
 //int 
 function FillFigure(nFigureId,COLORREF)
@@ -1968,12 +2296,22 @@ function InitFigureControlFromFile(context,canvas,ImageName,Control)
 	this.b_LoadData=true;
 	
 	this.m_Image.onload=function(){
-	 Control.RepaintControl();
+	/*
+	 var hRadio=Control.m_ClientRect.height/Control.m_Image.height;
+	 var wRadio=Control.m_ClientRect.width/Control.m_Image.width;
+	 Control.m_fZoomNum=Math.min(hRadio,wRadio);
+	 if(wRadio>hRadio)
+	 	Control.OriginalPoint_Bitmap.x=(Control.m_ClientRect.width-Control.m_Image.width*Control.m_fZoomNum)/2.0;
+	else
+	 	Control.OriginalPoint_Bitmap.y=(Control.m_ClientRect.height-Control.m_Image.height*Control.m_fZoomNum)/2.0;
+	 //Control.RepaintControl();*/	
+	 Control.SetFitFillControl();
+	 Control.ShiftImageToCenter();
     }   
 	
-	this.m_Image.src=ImageName; 
-	
+	this.m_Image.src=ImageName; 	
 	this.m_ClientRect=this.m_Canvas.getBoundingClientRect()
+	
 	
 	//鼠标缩放
 	this.m_Canvas.onmousewheel=this.m_Canvas.onwheel=function(event){
@@ -2003,11 +2341,22 @@ function InitFigureControlFromFile(context,canvas,ImageName,Control)
 			}
 		}
 		
+	    //鼠标松开左键	
 		Control.m_Canvas.onmouseup=function(){
-			Control.m_Canvas.onmousemove=null;
-			Control.m_Canvas.onmouseup=null;
-			Control.m_Canvas.style.cursor="default";
-    	}
+			if(event.button==0)
+			{
+				Control.m_bMouseClickFlag=false;
+				var pt=new CPoint(event.clientX,event.clientY);
+			
+				Control.LButtonUp(pt);
+				Control.m_Canvas.onmousemove=null;
+				Control.m_Canvas.onmouseup=null;
+				Control.m_Canvas.style.cursor="default";
+			}		
+		}		
+		/*Control.m_Canvas.onmouseup=function(){
+			
+    	}*/
 		
 	}
 	
@@ -2020,16 +2369,7 @@ function InitFigureControlFromFile(context,canvas,ImageName,Control)
 	
 	
 	
-	//鼠标松开左键	
-	this.m_Canvas.onmouseup=function(){
-		if(event.button==0)
-		{
-			Control.m_bMouseClickFlag=false;
-			var pt=new CPoint(event.clientX,event.clientY);
-		
-			Control.LButtonUp(pt);
-		}		
-    }
+
 
 	//鼠标双击左键	
 	this.m_Canvas.ondblclick=function()
@@ -2131,13 +2471,7 @@ function MouseMove(point)			 //移动鼠标
 				varcurrentFigurePos=-1;
 				
 				if (Iterator.figure_id==this.CurrentSelectPoint.Figure_id)
-				{					
-
-					//应使用CRgn,这样多边形、圆形包含矩形的情况也能适用。目前只支持矩形包含其他多边形、椭圆形。
-					var Rect1=new CRect(0,0,0,0);
-					var Rect2=new CRect(0,0,0,0);
-					var bCheckOutside=Iterator.relate_figure_id!=0 && !Iterator.bRelateFigureParallel;
-					
+				{				
 					if ( Iterator.figure_type==RectType || Iterator.figure_type==PolyType)
 					{  
 						var FindIterator=new CPoint(0,0);
@@ -2149,22 +2483,15 @@ function MouseMove(point)			 //移动鼠标
 							pointNum++; 
 							FindIterator=Iterator.figure_data.m_CPoint[FindIndex];
 							
-							if (FindIterator.x==this.CurrentSelectPoint.Figure_point.x  && FindIterator.y==this.CurrentSelectPoint.Figure_point.y)
+							if ((FindIterator.x==this.CurrentSelectPoint.Figure_point.x  && FindIterator.y==this.CurrentSelectPoint.Figure_point.y))
 							{
-								var bUpdateSelectPoint=true;
 								if (Iterator.figure_type==PolyType)
-								{
-									var pt=new CPoint(0,0);			
-									pt.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-									pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
+								{		
+									FindIterator.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
+									FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
 									
-									if(Iterator.bOutsideFigure && PtInRect(rect2, pt))
-										bUpdateSelectPoint=FALSE;
-									else
-									{
-										FindIterator.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-										FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
-									}
+									this.CurrentSelectPoint.Figure_point.x=FindIterator.x;
+									this.CurrentSelectPoint.Figure_point.y=FindIterator.y; 
 								}
 								if ( Iterator.figure_type==RectType)
 								{									
@@ -2195,19 +2522,14 @@ function MouseMove(point)			 //移动鼠标
 										{
 											var pt=new CPoint(0,0);			
 											pt.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-											pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
-											if(Iterator.bOutsideFigure  (pt.x>=rect2.left || pt.y>=rect2.top))
-											{
-												bUpdateSelectPoint=FALSE;
-												break;
-											}
-											FindIterator.x=pt.x;
-											FindIterator.y=pt.y;
-											FindIterator=Iterator.figure_data.m_CPoint[1];
-											FindIterator.y=pt.y;
-											FindIterator=Iterator.figure_data.m_CPoint[2];
-											FindIterator=Iterator.figure_data.m_CPoint[3];
-											FindIterator.x=pt.x;											
+											pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);										
+											
+											Iterator.figure_data.m_CPoint[0].x=pt.x;
+											Iterator.figure_data.m_CPoint[0].y=pt.y;
+											
+											Iterator.figure_data.m_CPoint[1].y=pt.y;
+											
+											Iterator.figure_data.m_CPoint[3].x=pt.x;			
 										}				
 										break;						
 									case 2:
@@ -2230,18 +2552,14 @@ function MouseMove(point)			 //移动鼠标
 										{
 											var pt=new CPoint(0,0);				
 											pt.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-											pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
-											if(Iterator.bOutsideFigure  (pt.x<=rect2.right || pt.y>=rect2.top))
-											{
-												bUpdateSelectPoint=FALSE;
-												break;
-											}
-											FindIterator.x=GetIntValue((m_cpCurrentPoint_cursor.x-OriginalPoint_Bitmap.x)/m_fZoomNum);
-											FindIterator.y=GetIntValue((m_cpCurrentPoint_cursor.y-OriginalPoint_Bitmap.y)/m_fZoomNum);
-											FindIterator=Iterator.figure_data.m_CPoint[0];
-											FindIterator.y=GetIntValue((m_cpCurrentPoint_cursor.y-OriginalPoint_Bitmap.y)/m_fZoomNum);
-											FindIterator=Iterator.figure_data.m_CPoint[2];
-											FindIterator.x=GetIntValue((m_cpCurrentPoint_cursor.x-OriginalPoint_Bitmap.x)/m_fZoomNum);											
+											pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);											
+											
+											Iterator.figure_data.m_CPoint[1].x=pt.x;
+											Iterator.figure_data.m_CPoint[1].y=pt.y;
+											
+											Iterator.figure_data.m_CPoint[0].y=pt.y;
+											
+											Iterator.figure_data.m_CPoint[2].x=pt.x;												
 										}										
 										break;
 									case 3:
@@ -2262,18 +2580,14 @@ function MouseMove(point)			 //移动鼠标
 										{
 											var pt=new CPoint(0,0);				
 											pt.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-											pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
-											if(Iterator.bOutsideFigure  (pt.x<=rect2.right || pt.y<=rect2.bottom))
-											{
-												bUpdateSelectPoint=FALSE;
-												break;
-											}
-											FindIterator.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-											FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
-											FindIterator=Iterator.figure_data.m_CPoint[1];
-											FindIterator.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-											FindIterator=Iterator.figure_data.m_CPoint[2];
-											FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);											
+											pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);											
+											
+											Iterator.figure_data.m_CPoint[2].x=pt.x;
+											Iterator.figure_data.m_CPoint[2].y=pt.y;
+											
+											Iterator.figure_data.m_CPoint[1].x=pt.x;
+											
+											Iterator.figure_data.m_CPoint[3].y=pt.y;											
 										}										
 										break;
 									case 4:
@@ -2295,65 +2609,54 @@ function MouseMove(point)			 //移动鼠标
 										{
 											var pt=new CPoint(0,0);			
 											pt.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-											pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
-											if(Iterator.bOutsideFigure  (pt.x>=rect2.left || pt.y<=rect2.bottom))
-											{
-												bUpdateSelectPoint=FALSE;
-												break;
-											}
-											FindIterator.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-											FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
-											FindIterator=Iterator.figure_data.m_CPoint[2];
-											FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
-											FindIterator=Iterator.figure_data.m_CPoint[0];
-											FindIterator.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);											
+											pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);										
+											
+											Iterator.figure_data.m_CPoint[3].x=pt.x;
+											Iterator.figure_data.m_CPoint[3].y=pt.y;
+											
+											Iterator.figure_data.m_CPoint[2].y=pt.y;
+											
+											Iterator.figure_data.m_CPoint[0].x=pt.x;										
 										}										
 										break;
 									default:
 										break;
-									}									
+									}			
+										this.CurrentSelectPoint.Figure_point.x=FindIterator.x;
+										this.CurrentSelectPoint.Figure_point.y=FindIterator.y; 						
 									b_find=1;
 									break; //找到该点后退出
 								}
 							} //end of list of point//*/
-							if ((Iterator.figure_type==RectType  &&CurrentSelectPoint.nPointIndex>=5))
+							if ((Iterator.figure_type==RectType  &&this.CurrentSelectPoint.nPointIndex>=5))
 							{
-								//中间点
-								var FindIndex=0;
+								//中间点								
 								FindIterator=Iterator.figure_data.m_CPoint[0];
 								var pt=new CPoint(0,0);	
-								switch(CurrentSelectPoint.nPointIndex)
+								switch(this.CurrentSelectPoint.nPointIndex)
 								{
 								case 5:		
 									pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
-									if(Iterator.bOutsideFigure  (pt.y>=rect2.top))
-										break;
 									FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
 									FindIterator=Iterator.figure_data.m_CPoint[1];
-									FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);							
+									FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
 									break;
 								case 6:			
-									pt.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-									if(bCheckOutside && Iterator.bOutsideFigure && (pt.x<=rect2.right))
-										break;
+									pt.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);									
 									FindIterator=Iterator.figure_data.m_CPoint[1];
 									FindIterator.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
 									FindIterator=Iterator.figure_data.m_CPoint[2];
 									FindIterator.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);	
 									break;
 								case 7:		
-									pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
-									if(bCheckOutside && Iterator.bOutsideFigure && (pt.y<=rect2.bottom))
-										break;
+									pt.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);								
 									FindIterator=Iterator.figure_data.m_CPoint[2];
 									FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
 									FindIterator=Iterator.figure_data.m_CPoint[3];
 									FindIterator.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);	
 									break;
 								case 8:		
-									pt.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/m_fZoomNum);
-									if(bCheckOutside && Iterator.bOutsideFigure&&  (pt.x>=rect2.left))
-										break;
+									pt.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
 									FindIterator.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
 									FindIterator=Iterator.figure_data.m_CPoint[3];
 									FindIterator.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);	
@@ -2391,18 +2694,18 @@ function MouseMove(point)			 //移动鼠标
 								{
 								case 1:
 									Iterator.figure_rect.top=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); //存入图像点
-									CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.top;									
+									this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.top;									
 									break;
 								case 2:									
 									Iterator.figure_rect.right=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
-									CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.right;
+									this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.right;
 									break;
 								case 3:
 									Iterator.figure_rect.bottom=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum);
 									this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.bottom;									
 									break;
 								case 4:
-									Iterator.figure_rect.left=GetIntValue((this.m_cpCurrentPoint_cursor.x-OriginalPoint_Bitmap.x)/this.m_fZoomNum);
+									Iterator.figure_rect.left=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum);
 									this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.left;
 									break;
 								default:
@@ -2441,14 +2744,12 @@ function MouseMove(point)			 //移动鼠标
 							{
 								var MoveDistance_x=0,MoveDistance_y=0; 
 								var CurrentPointCursor=new CPoint(0,0);
-								CurrentPointCursor.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/m_fZoomNum); 
-								CurrentPointCursor.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/m_fZoomNum); 
+								CurrentPointCursor.x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum); 
+								CurrentPointCursor.y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); 
 								switch(i)
 								{
 								case 1: 
-									if (CurrentPointCursor.x>=pt[2].x || CurrentPointCursor.y>=pt[4].y 
-										|| (bCheckOutside && Iterator.bOutsideFigure 
-										(CurrentPointCursor.x>=rect2.left || CurrentPointCursor.y>=rect2.top)))
+									if (CurrentPointCursor.x>=pt[2].x || CurrentPointCursor.y>=pt[4].y )
 									{
 										break;
 									}
@@ -2466,15 +2767,13 @@ function MouseMove(point)			 //移动鼠标
 										{
 											Iterator.figure_rect_outside.left+=MoveDistance_x;
 											Iterator.figure_rect_outside.top+=MoveDistance_y;
-											CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.left;
-											CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.top;
+											this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.left;
+											this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.top;
 											break;
 										}  
 									} 
 								case 2:
-									if (CurrentPointCursor.x<=pt[1].x || CurrentPointCursor.y>=pt[3].y
-										|| (bCheckOutside && Iterator.bOutsideFigure 
-										(CurrentPointCursor.x<=rect2.right || CurrentPointCursor.y>=rect2.top)))
+									if (CurrentPointCursor.x<=pt[1].x || CurrentPointCursor.y>=pt[3].y)
 									{
 										break;
 									}
@@ -2484,7 +2783,7 @@ function MouseMove(point)			 //移动鼠标
 										MoveDistance_y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum)-Iterator.figure_rect.top; 
 										Iterator.figure_rect.right=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum); 
 										Iterator.figure_rect.top=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); 
-										if (Iterator.figure_rect_outside.right+MoveDistance_x>=m_RectFigure.right || Iterator.figure_rect_outside.top+MoveDistance_y<=0)
+										if (Iterator.figure_rect_outside.right+MoveDistance_x>=this.m_RectFigure.right || Iterator.figure_rect_outside.top+MoveDistance_y<=0)
 										{
 											break;
 										}
@@ -2492,26 +2791,24 @@ function MouseMove(point)			 //移动鼠标
 										{
 											Iterator.figure_rect_outside.right+=MoveDistance_x;
 											Iterator.figure_rect_outside.top+=MoveDistance_y;
-											CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.right;
-											CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.top;
+											this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.right;
+											this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.top;
 											break;
 										} 
 
 									} 
 								case 3:
-									if (CurrentPointCursor.x<=pt[4].x || CurrentPointCursor.y<=pt[2].y
-										|| (bCheckOutside && Iterator.bOutsideFigure 
-										(CurrentPointCursor.x<=rect2.right || CurrentPointCursor.y<=rect2.bottom)))
+									if (CurrentPointCursor.x<=pt[4].x || CurrentPointCursor.y<=pt[2].y)
 									{
 										break;
 									}
 									else
 									{
-										MoveDistance_x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/m_fZoomNum)-Iterator.figure_rect.right; 
-										MoveDistance_y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/m_fZoomNum)-Iterator.figure_rect.bottom; 
-										Iterator.figure_rect.right=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/m_fZoomNum); 
-										Iterator.figure_rect.bottom=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/m_fZoomNum); 
-										if (Iterator.figure_rect_outside.right+MoveDistance_x>=m_RectFigure.right || Iterator.figure_rect_outside.bottom+MoveDistance_y>=m_RectFigure.bottom)
+										MoveDistance_x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum)-Iterator.figure_rect.right; 
+										MoveDistance_y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum)-Iterator.figure_rect.bottom; 
+										Iterator.figure_rect.right=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum); 
+										Iterator.figure_rect.bottom=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); 
+										if (Iterator.figure_rect_outside.right+MoveDistance_x>=this.m_RectFigure.right || Iterator.figure_rect_outside.bottom+MoveDistance_y>=this.m_RectFigure.bottom)
 										{
 											break;
 										}
@@ -2519,25 +2816,23 @@ function MouseMove(point)			 //移动鼠标
 										{
 											Iterator.figure_rect_outside.right+=MoveDistance_x;
 											Iterator.figure_rect_outside.bottom+=MoveDistance_y;
-											CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.right;
-											CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.bottom;
+											this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.right;
+											this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.bottom;
 											break;
 										} 
 									}									
 								case 4:
-									if (CurrentPointCursor.x>=pt[3].x || CurrentPointCursor.y<=pt[1].y
-										|| (bCheckOutside && Iterator.bOutsideFigure  
-										(CurrentPointCursor.x>=rect2.left || CurrentPointCursor.y<=rect2.bottom)))
+									if (CurrentPointCursor.x>=pt[3].x || CurrentPointCursor.y<=pt[1].y)
 									{
 										break;
 									}
 									else
 									{
-										MoveDistance_x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/m_fZoomNum)-Iterator.figure_rect.left; 
-										MoveDistance_y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/m_fZoomNum)-Iterator.figure_rect.bottom; 
+										MoveDistance_x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum)-Iterator.figure_rect.left; 
+										MoveDistance_y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum)-Iterator.figure_rect.bottom; 
 										Iterator.figure_rect.left=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum); 
 										Iterator.figure_rect.bottom=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); 
-										if (Iterator.figure_rect_outside.left+MoveDistance_x<=0 || Iterator.figure_rect_outside.bottom+MoveDistance_y>=m_RectFigure.bottom)
+										if (Iterator.figure_rect_outside.left+MoveDistance_x<=0 || Iterator.figure_rect_outside.bottom+MoveDistance_y>=this.m_RectFigure.bottom)
 										{
 											break;
 										}
@@ -2545,22 +2840,20 @@ function MouseMove(point)			 //移动鼠标
 										{
 											Iterator.figure_rect_outside.left+=MoveDistance_x;
 											Iterator.figure_rect_outside.bottom+=MoveDistance_y;
-											CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.left;
-											CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.bottom;
+											this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect.left;
+											this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect.bottom;
 											break;
 										} 
 									}									
-								case 5: 
-									if(bCheckOutside && Iterator.bOutsideFigure && CurrentPointCursor.y>=rect2.top)
-										break;
-									if (PointInRectEdge(CurrentPointCursor,Iterator.figure_rect,LeftTop))
+								case 5: 									
+									if (this.PointInRectEdge(CurrentPointCursor,Iterator.figure_rect,LeftTop))
 									{
-										if (b_ChooseDRectType)
+										if (this.b_ChooseDRectType)
 										{
 											MoveDistance_x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum)-Iterator.figure_rect_outside.left; 
 											MoveDistance_y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum)-Iterator.figure_rect_outside.top; 
 
-											if (Iterator.figure_rect_outside.right-MoveDistance_x>=m_RectFigure.right || Iterator.figure_rect_outside.bottom-MoveDistance_y>=m_RectFigure.bottom)
+											if (Iterator.figure_rect_outside.right-MoveDistance_x>=this.m_RectFigure.right || Iterator.figure_rect_outside.bottom-MoveDistance_y>=this.m_RectFigure.bottom)
 											{
 												break;
 											}
@@ -2571,31 +2864,29 @@ function MouseMove(point)			 //移动鼠标
 												//根据纪念币算法修改
 												Iterator.figure_rect_outside.right-=MoveDistance_x;
 												Iterator.figure_rect_outside.bottom-=MoveDistance_y;
-												CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.left;
-												CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.top;
+												this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.left;
+												this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.top;
 											}		
 										}
 										else
 										{
 											Iterator.figure_rect_outside.left=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum); 
 											Iterator.figure_rect_outside.top=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); 
-											CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.left;
-											CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.top;
+											this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.left;
+											this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.top;
 										}
 
 									} 
 									break;
-								case 6:
-									if(bCheckOutside && Iterator.bOutsideFigure && CurrentPointCursor.x<=rect2.right)
-										break;
-									if (PointInRectEdge(CurrentPointCursor,Iterator.figure_rect,RightTop))
+								case 6:								
+									if (this.PointInRectEdge(CurrentPointCursor,Iterator.figure_rect,RightTop))
 									{
-										if (b_ChooseDRectType)
+										if (this.b_ChooseDRectType)
 										{
 											MoveDistance_x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum)-Iterator.figure_rect_outside.right; 
 											MoveDistance_y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum)-Iterator.figure_rect_outside.top; 
 
-											if (Iterator.figure_rect_outside.left-MoveDistance_x<=0 || Iterator.figure_rect_outside.bottom-MoveDistance_y>=m_RectFigure.bottom)
+											if (Iterator.figure_rect_outside.left-MoveDistance_x<=0 || Iterator.figure_rect_outside.bottom-MoveDistance_y>=this.m_RectFigure.bottom)
 											{
 												break;
 											}
@@ -2607,26 +2898,24 @@ function MouseMove(point)			 //移动鼠标
 												Iterator.figure_rect_outside.left-=MoveDistance_x;
 												Iterator.figure_rect_outside.bottom-=MoveDistance_y; 
 
-												CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.right;
-												CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.top;
+												this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.right;
+												this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.top;
 											}		
 										}
 										else
 										{
 											Iterator.figure_rect_outside.right=GetIntValue((m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum); 
 											Iterator.figure_rect_outside.top=GetIntValue((m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); 
-											CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.right;
-											CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.top;
+											this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.right;
+											this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.top;
 										}
 
 									} 
 									break;
-								case 7:
-									if(bCheckOutside && Iterator.bOutsideFigure &&  CurrentPointCursor.y<=rect2.bottom)
-										break;
-									if (PointInRectEdge(CurrentPointCursor,Iterator.figure_rect,RightBottom))
+								case 7:								
+									if (this.PointInRectEdge(CurrentPointCursor,Iterator.figure_rect,RightBottom))
 									{
-										if (b_ChooseDRectType)
+										if (this.b_ChooseDRectType)
 										{
 											MoveDistance_x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum)-Iterator.figure_rect_outside.right; 
 											MoveDistance_y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum)-Iterator.figure_rect_outside.bottom; 
@@ -2644,27 +2933,25 @@ function MouseMove(point)			 //移动鼠标
 												Iterator.figure_rect_outside.left-=MoveDistance_x;
 												Iterator.figure_rect_outside.top-=MoveDistance_y;
 
-												CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.right;
-												CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.bottom;
+												this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.right;
+												this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.bottom;
 											}
 										}
 										else
 										{
 											Iterator.figure_rect_outside.right=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum); 
 											Iterator.figure_rect_outside.bottom=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); 
-											CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.right;
-											CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.bottom;
+											this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.right;
+											this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.bottom;
 										}
 
 
 									} 
 									break;
-								case 8:
-									if(bCheckOutside&&  Iterator.bOutsideFigure && CurrentPointCursor.x>=rect2.left)
-										break;
-									if (PointInRectEdge(CurrentPointCursor,Iterator.figure_rect,LeftBottom))
+								case 8:									
+									if (this.PointInRectEdge(CurrentPointCursor,Iterator.figure_rect,LeftBottom))
 									{
-										if (b_ChooseDRectType)
+										if (this.b_ChooseDRectType)
 										{
 											MoveDistance_x=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/m_fZoomNum)-Iterator.figure_rect_outside.left; 
 											MoveDistance_y=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/m_fZoomNum)-Iterator.figure_rect_outside.bottom; 
@@ -2682,16 +2969,16 @@ function MouseMove(point)			 //移动鼠标
 												Iterator.figure_rect_outside.right-=MoveDistance_x;
 												Iterator.figure_rect_outside.top-=MoveDistance_y; 
 
-												CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.left;
-												CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.bottom;
+												this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.left;
+												this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.bottom;
 											}
 										}
 										else
 										{
 											Iterator.figure_rect_outside.left=GetIntValue((this.m_cpCurrentPoint_cursor.x-this.OriginalPoint_Bitmap.x)/this.m_fZoomNum); 
 											Iterator.figure_rect_outside.bottom=GetIntValue((this.m_cpCurrentPoint_cursor.y-this.OriginalPoint_Bitmap.y)/this.m_fZoomNum); 
-											CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.left;
-											CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.bottom;
+											this.CurrentSelectPoint.Figure_point.x=Iterator.figure_rect_outside.left;
+											this.CurrentSelectPoint.Figure_point.y=Iterator.figure_rect_outside.bottom;
 										}
 
 
@@ -2749,17 +3036,17 @@ function MouseMove(point)			 //移动鼠标
 					{
 						var p1=new CPoint(0,0);
 						var p2=new CPoint(0,0); 
-						p1.x=GetIntValue(FindIterator.figure_rect.left*this.m_fZoomNum)+OriginalPoint_Bitmap.x+FindIterator.shift_x;
-						p1.y=GetIntValue(FindIterator.figure_rect.top*this.m_fZoomNum)+OriginalPoint_Bitmap.y+FindIterator.shift_y;
-						p2.x=GetIntValue(FindIterator.figure_rect.right*this.m_fZoomNum)+OriginalPoint_Bitmap.x+FindIterator.shift_x; 
-						p2.y=GetIntValue(FindIterator.figure_rect.bottom*this.m_fZoomNum)+OriginalPoint_Bitmap.y+FindIterator.shift_y;
-						if (PointGoOutSide(p1)  || PointGoOutSide(p2))
+						p1.x=GetIntValue(FindIterator.figure_rect.left*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+FindIterator.shift_x;
+						p1.y=GetIntValue(FindIterator.figure_rect.top*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+FindIterator.shift_y;
+						p2.x=GetIntValue(FindIterator.figure_rect.right*this.m_fZoomNum)+this.OriginalPoint_Bitmap.x+FindIterator.shift_x; 
+						p2.y=GetIntValue(FindIterator.figure_rect.bottom*this.m_fZoomNum)+this.OriginalPoint_Bitmap.y+FindIterator.shift_y;
+						if (this.PointGoOutSide(p1)  || this.PointGoOutSide(p2))
 						{
 							b_OutSide=true;
 						}
 						if (b_OutSide)
 						{
-							FindIterator.MoveFigure(-1*m_cpDistancePoint.x,-1*m_cpDistancePoint.y);
+							FindIterator.MoveFigure(-1*this.m_cpDistancePoint.x,-1*this.m_cpDistancePoint.y);
 						} 
 					}
 					else  //其它的为点组成的图形
@@ -2767,7 +3054,7 @@ function MouseMove(point)			 //移动鼠标
 						var PointIterator=new CPoint(0,0);
 						var nPointIndex=0;
 						var nFindPointIndex=0;
-						for (nFindPointIndex;nFindPointIndex<FindIterator.figure_data.nCPointCount;nFindPointIndex)
+						for (nFindPointIndex;nFindPointIndex<FindIterator.figure_data.nCPointCount;nFindPointIndex++)
 						{
 							PointIterator=FindIterator.figure_data.m_CPoint[nFindPointIndex];
 							var TempPoint=new CPoint(0,0);

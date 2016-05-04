@@ -16,7 +16,7 @@ var  FigureControl_Radius =3	;			//原点半径
 var  FigureControl_ShowPointRadius = 2   ;//显示原点半径
 var FigureControl_TextLength =175	;		//图形名称显示长度
 var  FigureControl_DoubleRectDistance =15 ; //双方框间距
-var  FigureControl_PointRectDistance= 3  ; //小方框大小
+var  FigureControl_PointRectDistance= 10  ; //小方框大小
 var  FigureControl_CrossSize= 10	;		//标记点大小 
 var  FigureControl_MaxSelectFigureNum= 10 ; 
 var  FigureControl_UserMessageMenu =10000;
@@ -308,6 +308,7 @@ function ClearFigureData()
 	this.TransRate=0;
 	this.figure_fill.b_fill=false;
 	this.bShowSqure=false;
+	this.bOutsideFigure=false;
 }
 
 
@@ -329,7 +330,7 @@ function Figure()
 		
 	this.TransRate=100;   //图形透明度 0-100
 	this.bShowSqure=true;
-	
+	this.bOutsideFigure=false;
 	//图像数据
 	this.figure_data=new figure_data;
 	

@@ -364,5 +364,4 @@ function FigureControl()
 	this. GetFigureOutsideRect=GetFigureOutsideRect
 	this. PreTranslateMessage=PreTranslateMessage;
 	
-	this.InitFigureControl();
 }
