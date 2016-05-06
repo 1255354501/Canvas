@@ -1,15 +1,16 @@
 
  var FigureControlTest;
- 
-  var testCount=0;
+ var testCount=0;
+ var canvas_HTML;
+ var context_HTML;
 
 (function int(){	
-    canvas=document.getElementById('canvas');
-    context=canvas.getContext('2d');
+    canvas_HTML=document.getElementById('canvas');
+    context_HTML=canvas_HTML.getContext('2d');
 	
 	FigureControlTest=new FigureControl;	
 	FigureControlTest.InitFigureControl();
-	FigureControlTest.InitFigureControlFromFile(context,canvas,"3.bmp",FigureControlTest);	
+	FigureControlTest.InitFigureControlFromFile(context_HTML,canvas_HTML,"3.bmp",FigureControlTest);	
 	
 	
 })();

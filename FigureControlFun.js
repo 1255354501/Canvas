@@ -2294,17 +2294,8 @@ function InitFigureControlFromFile(context,canvas,ImageName,Control)
 	this.y_Distance=Rect.top;
 	
 	this.b_LoadData=true;
-	
-	this.m_Image.onload=function(){
-	/*
-	 var hRadio=Control.m_ClientRect.height/Control.m_Image.height;
-	 var wRadio=Control.m_ClientRect.width/Control.m_Image.width;
-	 Control.m_fZoomNum=Math.min(hRadio,wRadio);
-	 if(wRadio>hRadio)
-	 	Control.OriginalPoint_Bitmap.x=(Control.m_ClientRect.width-Control.m_Image.width*Control.m_fZoomNum)/2.0;
-	else
-	 	Control.OriginalPoint_Bitmap.y=(Control.m_ClientRect.height-Control.m_Image.height*Control.m_fZoomNum)/2.0;
-	 //Control.RepaintControl();*/	
+
+	this.m_Image.onload=function(){		
 	 Control.SetFitFillControl();
 	 Control.ShiftImageToCenter();
     }   
@@ -2318,10 +2309,7 @@ function InitFigureControlFromFile(context,canvas,ImageName,Control)
 		var pt=new CPoint(event.clientX,event.clientY);
 		Control.MouseWheel(event.wheelDelta,pt);
 		Control.RepaintControl();
-	}
-	
-	
-	
+	}	
 	
 	//鼠标按下左键
 	this.m_Canvas.onmousedown=function(event){	
@@ -2353,11 +2341,7 @@ function InitFigureControlFromFile(context,canvas,ImageName,Control)
 				Control.m_Canvas.onmouseup=null;
 				Control.m_Canvas.style.cursor="default";
 			}		
-		}		
-		/*Control.m_Canvas.onmouseup=function(){
-			
-    	}*/
-		
+		}			
 	}
 	
 	//鼠标移动
@@ -2367,9 +2351,6 @@ function InitFigureControlFromFile(context,canvas,ImageName,Control)
 	  Control.MouseMove(pt);
 	}
 	
-	
-	
-
 
 	//鼠标双击左键	
 	this.m_Canvas.ondblclick=function()
@@ -2386,12 +2367,88 @@ function InitFigureControlFromFile(context,canvas,ImageName,Control)
 
 //未初始化，用当前环境显示
 //BOOL  IMG_OBJ*
-function LoadImageFromBuffer(obj)
-{}			
+function LoadImageFromBuffer(fControl)
+{
+	//var imagedata_Org = this.m_Context.getImageData(0, 0,this.m_Image.width, this.m_Image.height);
+	var imagedata;//=mew Image;
+	//Image.
+	 for(var i = 0, n = imagedata.data.length; i < n; i += 3) 
+	 {           
+		 imagedata.data[i + 0] = 255 - imagedata.data[i + 0]; //red;
+		 imagedata.data[i + 1] = 255 - imagedata.data[i + 1]; //green
+		 imagedata.data[i + 2] = 255 - imagedata.data[i + 2]; //blue
+         //imagedata.data[i + 3] = 255 - imagedata.data[i + 3]; //a
+      }
+     this.m_Context.putImageData(imagedata, 0, 0);
+}			
 //未初始化，用当前环境显示
 //BOOL  LPCTSTR FilePath
-function LoadImageFromFile(FilePath)
-{}						
+function LoadImageFromFile(ImageName,Control)
+{		
+	this.m_Image.onload=function(){
+	 Control.RepaintControl();
+    }   
+	
+	this.m_Image.src=ImageName; 		
+	
+	//鼠标缩放
+	this.m_Canvas.onmousewheel=this.m_Canvas.onwheel=function(event){
+		var pt=new CPoint(event.clientX,event.clientY);
+		Control.MouseWheel(event.wheelDelta,pt);
+		Control.RepaintControl();
+	}	
+	
+	//鼠标按下左键
+	this.m_Canvas.onmousedown=function(event){	
+		
+		if(event.button==0)
+		{
+			var pt=new CPoint(event.clientX,event.clientY);
+			Control.m_bMouseClickFlag=true;
+			Control.LButtonDown(pt);
+			
+			//鼠标移动
+			Control.m_Canvas.onmousemove=function(event)
+			{
+			  Control.m_Canvas.style.cursor="move";
+			  var pt=new CPoint(event.clientX,event.clientY);		  
+			  Control.MouseMove(pt);
+			}
+		}
+		
+	    //鼠标松开左键	
+		Control.m_Canvas.onmouseup=function(){
+			if(event.button==0)
+			{
+				Control.m_bMouseClickFlag=false;
+				var pt=new CPoint(event.clientX,event.clientY);
+			
+				Control.LButtonUp(pt);
+				Control.m_Canvas.onmousemove=null;
+				Control.m_Canvas.onmouseup=null;
+				Control.m_Canvas.style.cursor="default";
+			}		
+		}			
+	}
+	
+	//鼠标移动
+	this.m_Canvas.onmousemove=function(event)
+	{
+	  var pt=new CPoint(event.clientX,event.clientY);	  
+	  Control.MouseMove(pt);
+	}
+	
+
+	//鼠标双击左键	
+	this.m_Canvas.ondblclick=function()
+	{
+		if(event.button==0)
+		{
+			var pt=new CPoint(event.clientX,event.clientY);		
+			Control.LButtonDblClk(pt);
+		}		
+	}
+}						
 
 //回调函数，用来处理外部绘制要求
 //BOOL 
